@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+streamlit
+chromadb
+anthropic
+sentence-transformers
+pypdf
+Pillow
+python-dotenv
+pydantic
+deepgram-sdk
+elevenlabs
+pvporcupine
+sounddevice
+numpy
+pytest
+jupyter
