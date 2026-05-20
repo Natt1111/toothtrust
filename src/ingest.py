@@ -1,4 +1,4 @@
-"""Corpus ingestion: load PDFs → chunk → embed → store in ChromaDB."""
+"""Corpus ingestion: load PDFs and markdown files → chunk → embed → store in ChromaDB."""
 
 from __future__ import annotations
 
@@ -26,6 +26,16 @@ def _load_pdf(path: Path) -> str:
     return "\n".join(page.extract_text() or "" for page in reader.pages)
 
 
+def _load_markdown(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _load_document(path: Path) -> str:
+    if path.suffix == ".pdf":
+        return _load_pdf(path)
+    return _load_markdown(path)
+
+
 def _chunk_text(text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
     words = text.split()
     chunks: list[str] = []
@@ -43,24 +53,27 @@ def _doc_id(source: str, chunk_idx: int) -> str:
 
 
 def ingest(source_dir: Path = CORPUS_DIR, collection_name: str = CHROMA_COLLECTION) -> int:
-    """Ingest all PDFs in source_dir into ChromaDB. Returns number of chunks added."""
+    """Ingest all PDFs and markdown files in source_dir into ChromaDB. Returns chunk count."""
     model = SentenceTransformer(EMBEDDING_MODEL)
     client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
     collection = client.get_or_create_collection(collection_name)
 
-    pdf_files = list(source_dir.glob("**/*.pdf"))
-    if not pdf_files:
-        print(f"No PDFs found in {source_dir}")
+    doc_files = sorted(
+        [p for p in source_dir.glob("**/*.pdf")]
+        + [p for p in source_dir.glob("**/*.md") if p.name != "README.md"]
+    )
+    if not doc_files:
+        print(f"No documents found in {source_dir}")
         return 0
 
     total = 0
-    for pdf_path in pdf_files:
-        print(f"Ingesting {pdf_path.name}...")
-        text = _load_pdf(pdf_path)
+    for doc_path in doc_files:
+        print(f"Ingesting {doc_path.name}...")
+        text = _load_document(doc_path)
         chunks = _chunk_text(text)
         embeddings = model.encode(chunks, show_progress_bar=False).tolist()
-        ids = [_doc_id(pdf_path.name, i) for i in range(len(chunks))]
-        metadatas = [{"source": pdf_path.name, "chunk": i} for i in range(len(chunks))]
+        ids = [_doc_id(doc_path.name, i) for i in range(len(chunks))]
+        metadatas = [{"source": doc_path.name, "chunk": i} for i in range(len(chunks))]
         collection.upsert(documents=chunks, embeddings=embeddings, ids=ids, metadatas=metadatas)
         total += len(chunks)
         print(f"  → {len(chunks)} chunks")
