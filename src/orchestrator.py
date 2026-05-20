@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -17,19 +18,29 @@ class Intent(str, Enum):
     AUDIT = "audit"
     RESEARCH = "research"
     DOCUMENT = "document"
+    TREATMENT_COORDINATOR = "treatment_coordinator"
+    PERIO_CHART = "perio_chart"
     UNKNOWN = "unknown"
 
 
 _ROUTER_SYSTEM = """You are an intent classifier for a dental clinical assistant.
-Classify the user utterance into one of: chart, audit, research, document, unknown.
+Classify the user utterance into one of: chart, audit, research, document, treatment_coordinator, perio_chart, unknown.
 
 - chart: recording a clinical finding, note, or procedure (e.g. "chart MOD on 19", "note: patient reports sensitivity")
 - audit: evaluating or reviewing a treatment plan (e.g. "audit this plan", "is this crown justified?")
 - research: answering a clinical question (e.g. "what are the contraindications for bisphosphonates before extraction?")
-- document: generating a patient report or summary (e.g. "create the patient report", "summarize today's visit")
+- document: generating or reviewing a clinical SOAP note (e.g. "draft the note", "sign it", "read me the note")
+- treatment_coordinator: generating a patient-conversation script from an audit (e.g. "explain this to the patient", "create a treatment coordinator script", "help me present this plan")
+- perio_chart: recording periodontal probe depths from a voice transcript (e.g. "tooth 3 distobuccal 4 buccal 3", "perio chart", "start probe recording")
 - unknown: anything else
 
 Respond with ONLY the intent word, lowercase."""
+
+# Regex for detecting perio probe depth patterns directly (bypasses LLM classification for speed)
+_PERIO_PATTERN = re.compile(
+    r"\btooth\s+\d+.*\b(distobuccal|mesiobuccal|buccal|distolingual|mesiolingual|lingual|\bdb\b|\bmb\b)\s+\d+",
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -39,6 +50,8 @@ class Session:
     history: list[dict] = field(default_factory=list)
     chart_entries: list[dict] = field(default_factory=list)
     audit_result: object = None
+    documentation_draft: dict | None = None
+    perio_chart: dict | None = None
 
 
 class Orchestrator:
@@ -51,6 +64,10 @@ class Orchestrator:
         return self._sessions[session_id]
 
     def classify_intent(self, utterance: str) -> Intent:
+        # Fast-path: detect perio probe calls by pattern before calling the LLM
+        if _PERIO_PATTERN.search(utterance):
+            return Intent.PERIO_CHART
+
         response = _client.messages.create(
             model=CLAUDE_MODEL,
             max_tokens=16,
@@ -68,7 +85,9 @@ class Orchestrator:
         from src.agents.audit_agent import AuditAgent
         from src.agents.chart_agent import ChartAgent
         from src.agents.documentation_agent import DocumentationAgent
+        from src.agents.perio_chart_agent import PerioChartAgent
         from src.agents.research_agent import ResearchAgent
+        from src.agents.treatment_coordinator_agent import TreatmentCoordinatorAgent
 
         session = self.get_or_create_session(session_id)
         intent = self.classify_intent(utterance)
@@ -84,6 +103,12 @@ class Orchestrator:
             result = agent.run(utterance=utterance, session=session, **kwargs)
         elif intent == Intent.DOCUMENT:
             agent = DocumentationAgent()
+            result = agent.run(utterance=utterance, session=session, **kwargs)
+        elif intent == Intent.TREATMENT_COORDINATOR:
+            agent = TreatmentCoordinatorAgent()
+            result = agent.run(utterance=utterance, session=session, **kwargs)
+        elif intent == Intent.PERIO_CHART:
+            agent = PerioChartAgent()
             result = agent.run(utterance=utterance, session=session, **kwargs)
         else:
             result = {"intent": "unknown", "response": "I didn't understand that. Try again."}

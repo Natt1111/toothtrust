@@ -1,0 +1,15 @@
+{
+  "case_id": "case_03_perio_voice",
+  "title": "Periodontal Charting via Voice — Stage II Perio Maintenance",
+  "agent": "PerioChartAgent",
+  "patient": {
+    "age": 47,
+    "chief_complaint": "Perio maintenance visit, 4-month recall",
+    "medical_history": "History of Stage II periodontitis, completed SRP 14 months ago. Non-smoker. No diabetes."
+  },
+  "clinical_notes": "Hygienist Susan performing full-mouth periodontal exam. Voice transcript captures probe calls for the upper right sextant (teeth 2–5). Bleeding on probing noted at several sites. No recession documented at this visit.",
+  "corpus_sources": [
+    "aap_2017_classification_system.md",
+    "periodontal_charting_requirements.md"
+  ]
+}

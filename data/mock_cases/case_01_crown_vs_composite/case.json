@@ -1,0 +1,16 @@
+{
+  "case_id": "case_01_crown_vs_composite",
+  "title": "Crown vs. Composite — Tooth #19 Occlusal Caries",
+  "agent": "AuditAgent",
+  "patient": {
+    "age": 34,
+    "chief_complaint": "Routine checkup, no pain, no sensitivity",
+    "medical_history": "No significant medical history, no medications"
+  },
+  "clinical_notes": "Tooth #19 occlusal caries on radiograph. ~30% occlusal surface area. No pulpal involvement. No cuspal undermining on exam. No fracture lines. No periapical pathology. Tooth is vital, no sensitivity to percussion or cold. Existing restoration: none.",
+  "corpus_sources": [
+    "crown_indications_ada.md",
+    "composite_vs_crown_decision_criteria.md",
+    "caries_classification_icdas.md"
+  ]
+}

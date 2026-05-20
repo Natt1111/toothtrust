@@ -1,0 +1,6 @@
+Tooth 3, distobuccal 4, buccal 3, mesiobuccal 5, bleeding mesial
+Tooth 4, distobuccal 3, buccal 2, mesiobuccal 4, no bleeding
+Tooth 5, distobuccal 3, buccal 3, mesiobuccal 3, no bleeding
+Tooth 12, distobuccal 4, buccal 3, mesiobuccal 5, bleeding mesial
+Tooth 13, distolingual 4, lingual 3, mesiolingual 4, distobuccal 4, buccal 3, mesiobuccal 5, bleeding mesiobuccal
+Tooth 14, distolingual 3, lingual 2, mesiolingual 3, distobuccal 3, buccal 2, mesiobuccal 4, no bleeding

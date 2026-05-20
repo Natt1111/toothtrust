@@ -1,0 +1,53 @@
+{
+  "verdict": "LIKELY OVERTREATMENT",
+  "confidence": "high",
+  "summary": "Tooth #19 presents with a single-surface occlusal caries lesion covering approximately 30% of the surface with no cuspal undermining, no fracture, and no periapical pathology. The proposed D2750 porcelain crown is the most aggressive option on the restoration spectrum and is not indicated for this presentation. ADA guidelines and clinical evidence support a direct single-surface composite resin restoration (D2391) as the appropriate intervention.",
+  "decision_spectrum": [
+    {
+      "stage": 1,
+      "label": "Early smooth-surface caries (non-cavitated)",
+      "intervention": "Remineralization — fluoride varnish, Arestin, hygiene protocol",
+      "cdt_code": "D1206",
+      "applicable": false,
+      "reason": "Lesion is cavitated and into dentin; remineralization alone is insufficient"
+    },
+    {
+      "stage": 2,
+      "label": "Cavitated, single surface, <50% tooth structure loss",
+      "intervention": "Single-surface composite resin restoration",
+      "cdt_code": "D2391",
+      "applicable": true,
+      "reason": "MATCH: 30% occlusal lesion, no cuspal involvement, direct restoration appropriate"
+    },
+    {
+      "stage": 3,
+      "label": "Multi-surface caries (MO, DO, MOD) or moderate structural loss",
+      "intervention": "Multi-surface composite resin restoration",
+      "cdt_code": "D2392 / D2393",
+      "applicable": false,
+      "reason": "Lesion is single-surface only; no interproximal component visible"
+    },
+    {
+      "stage": 4,
+      "label": ">50% tooth structure loss, post-RCT, or fractured cusp",
+      "intervention": "Full-coverage crown",
+      "cdt_code": "D2750",
+      "applicable": false,
+      "reason": "Proposed plan — not indicated given single-surface 30% lesion without structural compromise"
+    }
+  ],
+  "recommended_alternative": {
+    "cdt_code": "D2391",
+    "description": "Resin-based composite — one surface, posterior, primary or permanent",
+    "estimated_fee": 220,
+    "rationale": "Restores the carious lesion conservatively, preserves maximum tooth structure, no irreversible preparation of cusps required. Aligns with minimally invasive dentistry principles."
+  },
+  "proposed_fee": 1400,
+  "alternative_fee": 220,
+  "patient_savings": 1180,
+  "citations": [
+    "crown_indications_ada.md",
+    "composite_vs_crown_decision_criteria.md",
+    "caries_classification_icdas.md"
+  ]
+}

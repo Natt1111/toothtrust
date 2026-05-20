@@ -1,0 +1,26 @@
+[
+  {
+    "cdt_code": "D7140",
+    "description": "Extraction, erupted tooth or exposed root — tooth #8",
+    "tooth": 8,
+    "surface": null,
+    "fee": 300,
+    "notes": "Provider proposes extraction as first step"
+  },
+  {
+    "cdt_code": "D6010",
+    "description": "Surgical placement of implant body — tooth #8 site",
+    "tooth": 8,
+    "surface": null,
+    "fee": 2500,
+    "notes": "Implant placement after extraction and healing"
+  },
+  {
+    "cdt_code": "D6058",
+    "description": "Implant-supported porcelain/ceramic crown — tooth #8",
+    "tooth": 8,
+    "surface": null,
+    "fee": 1700,
+    "notes": "Final crown after osseointegration"
+  }
+]

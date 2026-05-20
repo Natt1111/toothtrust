@@ -54,6 +54,87 @@ Synthesis of user research informing ToothTrust's product decisions.
 
 ---
 
+## Persona: Associate Dentist (DSO)
+
+**Name**: Dr. Priya Patel, DDS  
+**Context**: Age 38, 9 years in practice, associate at a DSO running Dentrix. Sees 24–28 patients/day across two operatories.
+
+### Pain Points
+
+> "I'm strong clinically but I'm drowning in documentation. I stay 60–90 minutes after my last patient almost every day."
+
+> "I want to show patients exactly what's going on with their tooth, but pulling up the right X-ray mid-conversation means walking to the computer and clicking through three menus — while they're watching me."
+
+> "Every treatment plan I present, insurance wants justification. I know the clinical rationale, but writing it up for each claim takes time I don't have."
+
+### Jobs to Be Done (ordered by urgency)
+1. **Leave the office by 6pm without taking documentation home** — #1 JTBD.
+2. Show patients procedures visually without leaving the operatory.
+3. Pull up specific X-rays during patient conversations.
+4. Phase complex treatment plans clearly so patients understand what comes first and why.
+5. Decide chairside what to prioritize today vs. next visit based on time and clinical logic.
+6. Justify treatment plans with evidence that both patients and insurance accept.
+
+### ToothTrust Value
+- **DocumentationAgent** (v1): SOAP draft → voice review → voice sign eliminates after-hours documentation.
+- **EducationAgent** (v2): voice-triggered procedure videos on the operatory screen.
+- **XRayRecallAgent** (v2): "Pull up tooth 19" retrieves the correct image without keyboard interaction.
+- **PhasingAgent** (v2): organizes treatment plans into Phase 1–4 automatically.
+- **PriorityAgent** (v2): "What should we start today?" considers time, anesthesia, and healing requirements.
+- **ResearchAgent** (v1): chairside evidence for clinical questions and insurance justification language.
+
+### ROI Signal
+> "If our 500 DSO dentists save 60 minutes/day on documentation, that's 500 hours/day of dentist time recovered." — DSO operations director framing for procurement conversations.
+
+---
+
+## Persona: Treatment Coordinator
+
+**Name**: Karen  
+**Context**: 8 years in the role, started at the front desk, now handles case presentation. Makes 6–10 treatment plan presentations daily across all three dentists in the practice.
+
+### Pain Points
+
+> "The doctor hands me a treatment plan and expects me to explain it to the patient. But I don't have clinical training — I'm basically improvising."
+
+> "Patients ask me 'what does a crown involve?' or 'what happens if I just wait?' and I don't always have a confident answer."
+
+> "When a patient declines treatment I feel like it's my fault, but I never know if I explained it wrong or if the price was just too high."
+
+### Jobs to Be Done
+1. Present treatment plans to patients in plain language without clinical training.
+2. Answer "what does this involve?" without sounding uncertain or reading from a pamphlet.
+3. Increase case acceptance without overselling or making promises the dentist can't keep.
+4. Document patient questions and objections for the dentist's follow-up.
+
+### ToothTrust Value
+- **TreatmentCoordinatorAgent** (v1): translates the clinical audit result into a patient-conversation script with plain-language explanations, each option's worst-case scenario, typical outcomes, timelines, costs, and a recommended framing — not a hard sell.
+
+---
+
+## Persona: Dental Hygienist (RDH)
+
+**Name**: Susan  
+**Context**: 12 years as a registered dental hygienist. Performs 8–10 perio exams and full-mouth debridements per day. Currently relies on an assistant to scribe probe depths during exams.
+
+### Pain Points
+
+> "I have to call out every number and then watch the assistant type it in and hope they got it right. If they're pulled away for something else, I'm stuck."
+
+> "AAP staging requires me to calculate the worst CAL across the whole mouth and then remember the criteria. I know them, but after 10 patients I've done the math wrong."
+
+> "I want to keep two hands on the patient and my eyes in the mouth. Having a scribe means breaking someone else's workflow too."
+
+### Jobs to Be Done
+1. Chart periodontal probing without breaking patient contact or borrowing another staff member.
+2. Get AAP 2017 staging and grading automatically from probe data — no manual calculation.
+3. Document bleeding on probing, recession, and mobility hands-free.
+
+### ToothTrust Value
+- **PerioChartAgent** (v1): transcribes voice probe calls ("tooth 3 distobuccal 4 buccal 3 mesiobuccal 5 bleeding") into a structured periodontal chart, computes clinical attachment loss per site, and returns AAP 2017 stage and grade with recommended next steps.
+
+---
+
 ## Key Insights for Product
 
 1. **Hands-free is non-negotiable for chairside** — push-to-talk is not enough; wake-word activation is required.
@@ -61,3 +142,5 @@ Synthesis of user research informing ToothTrust's product decisions.
 3. **Patients want citations, not conclusions** — "the ADA recommends..." is more trustworthy than "you should...".
 4. **The practice's workflow is the distribution channel** — if the assistant loves it, the dentist sees the value; patient-facing features are secondary.
 5. **Fear of liability shapes everything** — every recommendation must be framed as informational, not prescriptive.
+6. **Every role has the same hands-busy problem** — gloved hands, patient contact, and workflow continuity block every staff member from accessing information; the voice layer is the universal unlock.
+7. **DSO buyers need platform ROI, not feature ROI** — individual agents solve individual problems, but the DSO procurement conversation requires demonstrating time saved across the full staff roster.

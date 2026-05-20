@@ -1,0 +1,34 @@
+{
+  "verdict": "QUESTIONABLE — MISSING OPTION",
+  "confidence": "high",
+  "summary": "The proposed plan (extraction + implant, $4,500) is clinically valid but skips a well-established and significantly less expensive first option: endodontic treatment followed by post-and-core and crown (~$1,800). AAE guidelines support attempting endodontic treatment when no fracture is present and the tooth is restorable. The patient has not been presented with this choice. Per AAE position statement, extraction should be reserved for cases where endodontic treatment is contraindicated or has failed.",
+  "treatment_coordinator_script": {
+    "opening": "Dr. Patel reviewed your X-ray and found an infection at the tip of tooth #8. The good news is the tooth itself is intact — no cracks, no breaks. That means you have two solid options, and I want to walk you through both so you can make the choice that's right for you.",
+    "option_a": {
+      "label": "Option A: Save the Tooth (Root Canal Treatment)",
+      "plain_language": "A root canal cleans out the infected tissue inside the tooth, seals it off, and puts a crown on top to protect it. It's the same kind of procedure your tooth #9 had — and that one is still doing fine. This option keeps your natural tooth, which is almost always the better long-term outcome for your bite and bone.",
+      "typical_outcome": "85–90% success rate when no fracture is present. Most teeth treated this way last 10+ years. (Source: AAE meta-analysis, endodontic_success_rates_literature.md)",
+      "worst_case": "If the root canal doesn't resolve the infection, we'd move to Option B — extraction and implant. You'd have spent the cost of Option A first, but that scenario is uncommon when there's no fracture.",
+      "timeline": "2–3 visits over 4–6 weeks: root canal today or next visit, temporary crown, then permanent crown.",
+      "estimated_cost": 1800,
+      "cdt_codes": ["D3330", "D2952", "D2750"]
+    },
+    "option_b": {
+      "label": "Option B: Extract and Replace with an Implant (Current Plan)",
+      "plain_language": "We remove the infected tooth and place a titanium implant in the bone where the root was. After the implant fuses with your bone over 3–4 months, we attach a porcelain crown that looks and functions like a natural tooth. Implants are the gold standard for tooth replacement.",
+      "typical_outcome": "95%+ implant survival rate at 10 years. The result looks and feels like a natural tooth.",
+      "worst_case": "If the implant doesn't fuse with the bone (rare, ~5%), it's removed and we can try again after healing, or consider a bridge. A bone graft may be needed at extraction depending on socket condition.",
+      "timeline": "4–6 months total: extraction and healing (2–3 months), implant placement, osseointegration (3–4 months), crown placement.",
+      "estimated_cost": 4500,
+      "cdt_codes": ["D7140", "D6010", "D6058"]
+    },
+    "recommendation_framing": "Dr. Patel's recommendation based on AAE guidelines is to try Option A first, since the tooth is intact and the evidence shows strong success rates without a fracture. But this is your decision — some patients prefer to skip to the implant for predictability, and that's a perfectly valid choice too. What questions do you have?",
+    "patient_savings_if_option_a_succeeds": 2700
+  },
+  "proposed_fee": 4500,
+  "citations": [
+    "aae_retreatment_position_statement.md",
+    "endo_vs_extraction_decision_framework.md",
+    "endodontic_success_rates_literature.md"
+  ]
+}

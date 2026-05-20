@@ -1,0 +1,98 @@
+{
+  "teeth": [
+    {
+      "tooth": 3,
+      "sites": {
+        "distobuccal": 4,
+        "buccal": 3,
+        "mesiobuccal": 5
+      },
+      "bleeding_sites": ["mesiobuccal"],
+      "recession": {},
+      "worst_depth": 5,
+      "cal_proxy": 5
+    },
+    {
+      "tooth": 4,
+      "sites": {
+        "distobuccal": 3,
+        "buccal": 2,
+        "mesiobuccal": 4
+      },
+      "bleeding_sites": [],
+      "recession": {},
+      "worst_depth": 4,
+      "cal_proxy": 4
+    },
+    {
+      "tooth": 5,
+      "sites": {
+        "distobuccal": 3,
+        "buccal": 3,
+        "mesiobuccal": 3
+      },
+      "bleeding_sites": [],
+      "recession": {},
+      "worst_depth": 3,
+      "cal_proxy": 3
+    },
+    {
+      "tooth": 12,
+      "sites": {
+        "distobuccal": 4,
+        "buccal": 3,
+        "mesiobuccal": 5
+      },
+      "bleeding_sites": ["mesiobuccal"],
+      "recession": {},
+      "worst_depth": 5,
+      "cal_proxy": 5
+    },
+    {
+      "tooth": 13,
+      "sites": {
+        "distolingual": 4,
+        "lingual": 3,
+        "mesiolingual": 4,
+        "distobuccal": 4,
+        "buccal": 3,
+        "mesiobuccal": 5
+      },
+      "bleeding_sites": ["mesiobuccal"],
+      "recession": {},
+      "worst_depth": 5,
+      "cal_proxy": 5
+    },
+    {
+      "tooth": 14,
+      "sites": {
+        "distolingual": 3,
+        "lingual": 2,
+        "mesiolingual": 3,
+        "distobuccal": 3,
+        "buccal": 2,
+        "mesiobuccal": 4
+      },
+      "bleeding_sites": [],
+      "recession": {},
+      "worst_depth": 4,
+      "cal_proxy": 4
+    }
+  ],
+  "summary": {
+    "teeth_charted": 6,
+    "total_sites": 27,
+    "bleeding_on_probing_sites": 3,
+    "bop_percent": 11.1,
+    "worst_cal": 5,
+    "aap_stage": "Stage II",
+    "aap_grade": "Grade B",
+    "staging_rationale": "Worst CAL 3–4mm range across most sites with isolated 5mm pockets. No tooth loss from periodontitis documented. Consistent with Stage II (moderate periodontitis) per 2017 AAP/EFP classification.",
+    "grading_rationale": "No documented risk factors (non-smoker, no diabetes). Moderate progression rate assumed without radiographic bone loss data. Grade B assigned as default for v1.",
+    "recommended_next_steps": "Continue 4-month periodontal maintenance (D4910). Targeted oral hygiene reinforcement at teeth 3, 12, and 13 — highest BOP and pocket depths. Re-evaluate 5mm sites at next visit; escalate to localized SRP if depths do not respond to maintenance."
+  },
+  "citations": [
+    "aap_2017_classification_system.md",
+    "periodontal_charting_requirements.md"
+  ]
+}

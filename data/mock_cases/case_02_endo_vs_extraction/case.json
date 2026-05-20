@@ -1,0 +1,16 @@
+{
+  "case_id": "case_02_endo_vs_extraction",
+  "title": "Endo vs. Extraction + Implant — Tooth #8 Periapical Pathology",
+  "agent": "AuditAgent + TreatmentCoordinatorAgent",
+  "patient": {
+    "age": 52,
+    "chief_complaint": "Anterior tooth pain for 2 weeks, no facial swelling, no fever",
+    "medical_history": "Prior endodontic treatment on tooth #9 (successful, no issues). No systemic contraindications to endodontic or implant treatment."
+  },
+  "clinical_notes": "Tooth #8: large periapical radiolucency ~5mm diameter. No vertical root fracture visible on periapical X-ray. No craze lines or frank fracture on clinical exam. Tooth is restorable — adequate coronal structure, margins can be placed in sound tooth structure. Crown not present. Patient reports lingering pain to cold (suggests vital or partially vital pulp vs. failing prior RCT — consider whether this is a primary endo or retreatment case; original endo not documented for #8).",
+  "corpus_sources": [
+    "aae_retreatment_position_statement.md",
+    "endo_vs_extraction_decision_framework.md",
+    "endodontic_success_rates_literature.md"
+  ]
+}
