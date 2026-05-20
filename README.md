@@ -31,3 +31,5 @@
 ## What I'd ship next
 
 <!-- TODO: Dentrix write-back via real API, HIPAA BAA, fine-tuned CDT code classifier, iOS companion app. -->
+
+- **Patient Education Agent** — voice-triggered procedure video playback with timestamped consent logging; see [docs/IDEAS.md](docs/IDEAS.md)
