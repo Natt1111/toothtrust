@@ -36,8 +36,10 @@ _TOOTH_LINE_RE = re.compile(
     r"tooth\s+(\d+)[,\s]+(.*)",
     re.IGNORECASE,
 )
+# Optional recession capture: "buccal 3 recession 2" → depth=3, recession=2
 _SITE_DEPTH_RE = re.compile(
-    r"(distobuccal|mesiobuccal|buccal|distolingual|mesiolingual|lingual|db|mb|b|dl|ml|l)\s+(\d+)",
+    r"(distobuccal|mesiobuccal|buccal|distolingual|mesiolingual|lingual|db|mb|b|dl|ml|l)"
+    r"\s+(\d+)(?:\s+recession\s+(\d+))?",
     re.IGNORECASE,
 )
 _BLEEDING_RE = re.compile(
@@ -127,11 +129,15 @@ def _parse_transcript(text: str) -> list[dict]:
         rest = m.group(2)
 
         sites: dict[str, int] = {}
+        recession_dict: dict[str, int] = {}
         for sm in _SITE_DEPTH_RE.finditer(rest):
             site_raw = sm.group(1).lower()
             depth = int(sm.group(2))
+            recession = int(sm.group(3)) if sm.group(3) else 0
             site = _SITE_ALIASES.get(site_raw, site_raw)
             sites[site] = depth
+            if recession > 0:
+                recession_dict[site] = recession
 
         bleeding_sites: list[str] = []
         for bm in _BLEEDING_RE.finditer(rest):
@@ -142,14 +148,17 @@ def _parse_transcript(text: str) -> list[dict]:
         if not sites:
             continue
 
-        worst = max(sites.values())
+        # CAL = probing depth + recession (default recession = 0)
+        cal_per_site = {s: d + recession_dict.get(s, 0) for s, d in sites.items()}
+        worst_depth = max(sites.values())
+        worst_cal = max(cal_per_site.values())
         teeth.append({
             "tooth": tooth_num,
             "sites": sites,
             "bleeding_sites": bleeding_sites,
-            "recession": {},
-            "worst_depth": worst,
-            "cal_proxy": worst,
+            "recession": recession_dict,
+            "worst_depth": worst_depth,
+            "cal_proxy": worst_cal,
         })
     return teeth
 

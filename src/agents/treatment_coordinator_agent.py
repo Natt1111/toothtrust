@@ -84,8 +84,8 @@ class TreatmentCoordinatorAgent(BaseAgent):
         raw = self._call("\n\n".join(prompt_parts))
 
         try:
-            script = json.loads(raw)
-        except json.JSONDecodeError:
+            script = self._parse_json_response(raw)
+        except ValueError:
             script = {"opening": raw, "options": [], "recommendation_framing": "", "follow_up_questions_to_anticipate": [], "documentation_note": ""}
 
         response_preview = script.get("opening", "Patient conversation script ready.")

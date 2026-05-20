@@ -21,7 +21,8 @@ EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 # --- Vector DB ---
 CHROMA_PERSIST_DIR: str = os.getenv("CHROMA_PERSIST_DIR", str(BASE_DIR / "chroma_db"))
 CHROMA_COLLECTION: str = os.getenv("CHROMA_COLLECTION", "dental_evidence")
-TOP_K_RETRIEVAL: int = int(os.getenv("TOP_K_RETRIEVAL", "5"))
+# Raised from 5→7: Stage 7 testing showed top_k=5 missed caries_classification_icdas.md for Case 1
+TOP_K_RETRIEVAL: int = int(os.getenv("TOP_K_RETRIEVAL", "7"))
 
 # --- Data paths ---
 CORPUS_DIR: Path = BASE_DIR / "data" / "corpus"

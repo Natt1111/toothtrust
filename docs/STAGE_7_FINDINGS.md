@@ -161,3 +161,38 @@ Checking actual: tooth 3 = 3 sites, 4 = 3, 5 = 3, 12 = 3, 13 = 6, 14 = 6 → 24 
 | P1 | Change perio stage comparison to `mode="eq"` | `scripts/run_audit.py` |
 | P2 | Add `recommended_alternative` field to audit schema | `src/audit.py`, `_AUDIT_SYSTEM` |
 | P2 | Investigate CAL = depth + recession for perio parser | `src/agents/perio_chart_agent.py` |
+
+---
+
+## Stage 7.5 Resolution
+
+**Date**: 2026-05-20  
+**Tests after fixes**: 45/45 (up from 33)  
+**Pipeline re-run scores**: Case 1 6/6, Case 2 4/4, Case 3 6/6 — all passing
+
+### Items resolved
+
+**P0 — DRY fence stripping** ✅  
+Added `BaseAgent._parse_json_response(raw)` as a static method. Strips ` ```json ``` ` and ` ``` ``` ` fences, tries stripped then raw, raises `ValueError` with a diagnostic message on total failure. `audit.py` now imports and calls `BaseAgent._parse_json_response()` instead of the inline 3-liner. `TreatmentCoordinatorAgent` uses `self._parse_json_response()`. TC script now renders cleanly in Case 2 output (opening field is actual opening text, not raw JSON). 8 new tests in `tests/test_base_agent.py`.
+
+**P0 — Fix `expected_chart.json`** ✅  
+Corrected `aap_stage` Stage II → Stage III, `total_sites` 27 → 24, `bop_percent` 11.1 → 12.5. Added `_correction_note` field explaining the rationale. Updated `staging_rationale` to accurately state CAL ≥5mm = Stage III. Runner now uses `mode="eq"` for stage comparison and Case 3 passes 6/6.
+
+**P1 — Raise `top_k` from 5 to 7** ✅  
+Changed default in `src/config.py` with inline comment citing the Stage 7 finding. Effect confirmed: Case 1 now retrieves `composite_vs_crown_decision_criteria.md` (previously missed) alongside `crown_indications_ada.md` and `bitewing_radiograph_interpretation.md`.
+
+**P1 — Fix perio stage comparison to `mode="eq"`** ✅  
+Runner updated. `"Stage II"` no longer falsely passes when actual is `"Stage III"` (the substring match bug). Confirmed 6/6 with exact match.
+
+**P2 — `recommended_alternative` field in audit schema** ✅  
+Added to `AuditResult` dataclass and `_AUDIT_SYSTEM` prompt. Field is required when verdict is `unsupported` or `partially_supported`. Case 1 confirms: `recommended_alternative.cdt_code = "D2391"` populated. Runner comparison updated with a new check — Case 1 now scores 6/6 (up from 5/5). Case 2 does not have a `recommended_alternative` in expected so comparison is unchanged at 4/4.
+
+**P2 — Recession support in perio parser** ✅  
+`_SITE_DEPTH_RE` now optionally captures `recession N` after depth: `"buccal 3 recession 2"` → depth=3, recession=2, CAL=5. `cal_proxy` uses `depth + recession` per site; `worst_depth` tracks raw probe depth separately. Default recession=0 is fully backwards compatible — existing transcripts and tests pass unchanged. 4 new tests in `test_perio_chart_agent.py` covering recession parsing, zero-default, CAL-based staging, and mixed input.
+
+### Observations from Stage 7.5 re-runs
+
+- **Case 2 TC script is now rendering correctly** — the `_parse_json_response` fix resolved the fence-wrapping issue. The TC script opening reads as plain text, not raw JSON.
+- **Case 1 citation improvement confirmed** — `composite_vs_crown_decision_criteria.md` now appears in the cited sources at `top_k=7`. This was the specific corpus gap identified in Stage 7.
+- **Case 3 Stage III confirmed stable** — consistent across both Stage 7 and Stage 7.5 runs. The staging logic is correct.
+- **No regressions** — all 33 original tests pass; 12 new tests added, all green.

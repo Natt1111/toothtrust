@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 
 import anthropic
 
+from src.agents.base_agent import BaseAgent
 from src.config import ANTHROPIC_API_KEY, CLAUDE_MODEL
 from src.retrieval import EvidenceRetriever
 
@@ -31,8 +32,18 @@ Return ONLY valid JSON with this schema:
     }
   ],
   "missing_information": ["<what additional clinical data would improve confidence>"],
-  "patient_summary": "<plain-language 2-3 sentence summary for the patient>"
+  "patient_summary": "<plain-language 2-3 sentence summary for the patient>",
+  "recommended_alternative": {
+    "cdt_code": "<code or null>",
+    "description": "<procedure name>",
+    "rationale": "<1 sentence why this alternative is more appropriate>",
+    "estimated_fee": <number or null>
+  }
 }
+
+The recommended_alternative field is REQUIRED when overall_assessment is "unsupported" or
+"partially_supported". It should name the more conservative or evidence-aligned procedure.
+Set it to null when overall_assessment is "supported".
 
 You MUST cite only sources provided in the context. Do not fabricate citations.
 Frame everything as informational — you are not diagnosing or prescribing."""
@@ -45,6 +56,7 @@ class AuditResult:
     procedures: list[dict]
     missing_information: list[str]
     patient_summary: str
+    recommended_alternative: dict = field(default_factory=dict)
     retrieved_chunks: list[dict] = field(default_factory=list)
     raw_response: str = ""
 
@@ -94,19 +106,16 @@ Audit the treatment plan against the evidence above."""
     )
 
     raw = response.content[0].text
-    # Claude sometimes wraps JSON in markdown code fences; strip them before parsing.
-    stripped = raw.strip()
-    if stripped.startswith("```"):
-        stripped = stripped.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
     try:
-        data = json.loads(stripped)
-    except json.JSONDecodeError:
+        data = BaseAgent._parse_json_response(raw)
+    except ValueError:
         data = {
             "overall_assessment": "error",
             "confidence": "low",
             "procedures": [],
             "missing_information": [],
             "patient_summary": "Audit parsing failed. Please review the raw response.",
+            "recommended_alternative": {},
         }
 
     return AuditResult(
@@ -115,6 +124,7 @@ Audit the treatment plan against the evidence above."""
         procedures=data.get("procedures", []),
         missing_information=data.get("missing_information", []),
         patient_summary=data.get("patient_summary", ""),
+        recommended_alternative=data.get("recommended_alternative") or {},
         retrieved_chunks=chunks,
         raw_response=raw,
     )

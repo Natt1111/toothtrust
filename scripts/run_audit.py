@@ -200,7 +200,7 @@ def compare_audit(actual: dict, expected: dict) -> tuple[int, int]:
     print(f"  {status}  patient_summary present ({len(act_summary)} chars)")
     passes += int(ok)
 
-    # Recommended alternative CDT code mentioned somewhere in response
+    # Recommended alternative — check CDT code appears AND the new schema field is populated
     alt = expected.get("recommended_alternative", {})
     if alt.get("cdt_code"):
         total += 1
@@ -209,6 +209,14 @@ def compare_audit(actual: dict, expected: dict) -> tuple[int, int]:
             f"recommended alternative {alt['cdt_code']} mentioned",
             full_response, alt["cdt_code"], mode="contains"
         ))
+        # Also verify the structured recommended_alternative field is populated in schema
+        act_alt = (actual.get("audit_result", {}) or {}).get("recommended_alternative", {})
+        total += 1
+        ok = bool(act_alt and act_alt.get("cdt_code"))
+        status = green("PASS") if ok else yellow("MISSING")
+        label = f"recommended_alternative field populated (got: {act_alt.get('cdt_code', 'none')})"
+        print(f"  {status}  {label}")
+        passes += int(ok)
 
     return passes, total
 
@@ -230,9 +238,9 @@ def compare_perio(actual: dict, expected: dict) -> tuple[int, int]:
     total += 1
     passes += int(_check("worst_cal", summary.get("worst_cal"), exp_summary.get("worst_cal"), mode="eq"))
 
-    # AAP stage
+    # AAP stage — exact match now that expected_chart.json is corrected to Stage III
     total += 1
-    passes += int(_check("aap_stage", summary.get("aap_stage"), exp_summary.get("aap_stage"), mode="contains"))
+    passes += int(_check("aap_stage", summary.get("aap_stage"), exp_summary.get("aap_stage"), mode="eq"))
 
     # AAP grade
     total += 1

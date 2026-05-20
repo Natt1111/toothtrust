@@ -154,3 +154,44 @@ def test_orchestrator_routes_perio_chart_intent_from_llm(mock_client):
     orch = Orchestrator()
     intent = orch.classify_intent("start perio chart")
     assert intent == Intent.PERIO_CHART
+
+
+# ---------------------------------------------------------------------------
+# Recession support tests (P2.6)
+# ---------------------------------------------------------------------------
+
+def test_parse_transcript_recession_increases_cal():
+    # Depth 3 + recession 2 = CAL 5 → should trigger Stage III
+    teeth = _parse_transcript("Tooth 7, distobuccal 3 recession 2, buccal 2, mesiobuccal 3, no bleeding")
+    assert len(teeth) == 1
+    tooth = teeth[0]
+    assert tooth["recession"]["distobuccal"] == 2
+    assert tooth["cal_proxy"] == 5   # max(3+2, 2+0, 3+0)
+    assert tooth["worst_depth"] == 3  # worst raw probe depth, unaffected by recession
+
+
+def test_parse_transcript_recession_defaults_to_zero_when_absent():
+    teeth = _parse_transcript("Tooth 7, distobuccal 2, buccal 2, mesiobuccal 2, no bleeding")
+    assert teeth[0]["recession"] == {}
+    assert teeth[0]["cal_proxy"] == 2
+
+
+def test_aap_staging_uses_cal_not_raw_depth():
+    # Shallow probing depths but recession elevates CAL to Stage III territory
+    teeth = _parse_transcript("Tooth 7, distobuccal 3 recession 2, buccal 2, mesiobuccal 3, no bleeding")
+    stage, grade = _aap_stage_grade(teeth[0]["cal_proxy"])
+    assert stage == "Stage III"   # CAL=5 → Stage III even though raw depths are 2-3mm
+
+
+def test_parse_transcript_mixed_recession_and_no_recession():
+    transcript = (
+        "Tooth 3, distobuccal 4 recession 1, buccal 3, mesiobuccal 5, no bleeding\n"
+        "Tooth 4, distobuccal 3, buccal 2, mesiobuccal 3, no bleeding"
+    )
+    teeth = _parse_transcript(transcript)
+    t3 = next(t for t in teeth if t["tooth"] == 3)
+    t4 = next(t for t in teeth if t["tooth"] == 4)
+    assert t3["recession"]["distobuccal"] == 1
+    assert t3["cal_proxy"] == 5   # max(4+1, 3+0, 5+0) = 5
+    assert t4["recession"] == {}
+    assert t4["cal_proxy"] == 3

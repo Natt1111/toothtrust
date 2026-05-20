@@ -1,4 +1,5 @@
 {
+  "_correction_note": "Corrected in Stage 7.5: Stage II → Stage III (5mm worst CAL per AAP 2017 = Stage III), total_sites 27→24 (actual transcript yields 24 sites, not 27), bop_percent 11.1→12.5 (3/24). Stage III confirmed by pipeline run.",
   "teeth": [
     {
       "tooth": 3,
@@ -81,13 +82,13 @@
   ],
   "summary": {
     "teeth_charted": 6,
-    "total_sites": 27,
+    "total_sites": 24,
     "bleeding_on_probing_sites": 3,
-    "bop_percent": 11.1,
+    "bop_percent": 12.5,
     "worst_cal": 5,
-    "aap_stage": "Stage II",
+    "aap_stage": "Stage III",
     "aap_grade": "Grade B",
-    "staging_rationale": "Worst CAL 3–4mm range across most sites with isolated 5mm pockets. No tooth loss from periodontitis documented. Consistent with Stage II (moderate periodontitis) per 2017 AAP/EFP classification.",
+    "staging_rationale": "Worst CAL ≥5mm at teeth 3, 12, and 13. Per AAP 2017 classification, Stage III begins at CAL ≥5mm. Stage II range is 3–4mm only.",
     "grading_rationale": "No documented risk factors (non-smoker, no diabetes). Moderate progression rate assumed without radiographic bone loss data. Grade B assigned as default for v1.",
     "recommended_next_steps": "Continue 4-month periodontal maintenance (D4910). Targeted oral hygiene reinforcement at teeth 3, 12, and 13 — highest BOP and pocket depths. Re-evaluate 5mm sites at next visit; escalate to localized SRP if depths do not respond to maintenance."
   },
