@@ -94,8 +94,12 @@ Audit the treatment plan against the evidence above."""
     )
 
     raw = response.content[0].text
+    # Claude sometimes wraps JSON in markdown code fences; strip them before parsing.
+    stripped = raw.strip()
+    if stripped.startswith("```"):
+        stripped = stripped.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
     try:
-        data = json.loads(raw)
+        data = json.loads(stripped)
     except json.JSONDecodeError:
         data = {
             "overall_assessment": "error",

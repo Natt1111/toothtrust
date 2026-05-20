@@ -58,6 +58,9 @@ Icon
 # Vector DB
 chroma_db/
 
+# Pipeline run artifacts
+outputs/
+
 # Pytest
 .pytest_cache/
 .coverage
