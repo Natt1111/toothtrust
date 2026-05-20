@@ -13,7 +13,6 @@ BASE_DIR = Path(__file__).parent.parent
 ANTHROPIC_API_KEY: str = os.environ["ANTHROPIC_API_KEY"]
 DEEPGRAM_API_KEY: str = os.getenv("DEEPGRAM_API_KEY", "")
 ELEVENLABS_API_KEY: str = os.getenv("ELEVENLABS_API_KEY", "")
-PICOVOICE_ACCESS_KEY: str = os.getenv("PICOVOICE_ACCESS_KEY", "")
 
 # --- Model settings ---
 CLAUDE_MODEL: str = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-6")

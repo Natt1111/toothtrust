@@ -10,7 +10,7 @@ python-dotenv
 pydantic
 deepgram-sdk
 elevenlabs
-pvporcupine
+openwakeword
 sounddevice
 numpy
 pytest
