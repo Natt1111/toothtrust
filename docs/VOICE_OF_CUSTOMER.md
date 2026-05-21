@@ -135,6 +135,26 @@ Synthesis of user research informing ToothTrust's product decisions.
 
 ---
 
+## Persona: Front Desk Coordinator
+
+**Name**: Diana Martinez  
+**Context**: 6 years in front desk roles. Manages 30+ appointments per day — answers phones, processes payments, handles check-in and check-out, and coordinates between clinical staff and patients.
+
+### Pain Points
+
+> "I forget to check lab cases until the patient is already here."
+
+### Jobs to Be Done
+1. Know which lab cases are at risk for tomorrow without having to manually look through Dentrix Lab Case Manager.
+2. Quickly check a single case status by voice while on the phone with a patient — without putting them on hold to navigate to a screen.
+3. Get reschedule messages drafted automatically when a case won't arrive in time.
+4. Know which step in the workflow broke when something falls through — without guessing or asking around.
+
+### ToothTrust Value
+- **LabCaseAgent** (v1): proactively scans tomorrow's schedule for lab case risk, surfaces critical/at-risk appointments, identifies handoff gaps, and drafts patient reschedule messages — all via a single morning voice command.
+
+---
+
 ## Key Insights for Product
 
 1. **Hands-free is non-negotiable for chairside** — push-to-talk is not enough; wake-word activation is required.

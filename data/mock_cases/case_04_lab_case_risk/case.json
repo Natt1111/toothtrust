@@ -1,0 +1,21 @@
+{
+  "case_id": "case_04_lab_case_risk",
+  "title": "Lab Case Risk Scanner — Tomorrow's Schedule",
+  "agent": "LabCaseAgent",
+  "demo_scenario": "It's Monday 7am. Diana (Front Desk Coordinator) opens ToothTrust to scan tomorrow's schedule for lab case risks before the day starts.",
+  "demo_date": "2026-05-22",
+  "patient": {
+    "role": "Front Desk Coordinator",
+    "name": "Diana Martinez",
+    "context": "Scanning tomorrow's 8-appointment schedule for lab case readiness before the clinical day begins."
+  },
+  "mock_data_sources": [
+    "data/mock_data/appointments.json",
+    "data/mock_data/lab_cases.json"
+  ],
+  "expected_files": [
+    "expected_scan_output.json",
+    "expected_lookup_output.json",
+    "expected_attribution_output.json"
+  ]
+}

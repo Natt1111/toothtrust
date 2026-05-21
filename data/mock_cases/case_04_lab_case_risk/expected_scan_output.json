@@ -1,0 +1,110 @@
+{
+  "_note": "Deterministic expected output from LabCaseAgent.scan_tomorrows_appointments() given mock data in data/mock_data/. No Claude API call needed for this output.",
+  "intent": "lab_case_scan",
+  "scan_date": "2026-05-22",
+  "appointments": [
+    {
+      "appointment_id": "APT-2026-0801",
+      "patient_name": "Sarah Chen",
+      "time": "08:00",
+      "procedure": "Crown - porcelain fused to high noble metal, tooth #19",
+      "procedure_code": "D2750",
+      "lab_case_id": "LC-4401",
+      "lab_case_status": "shipped_back",
+      "lab_name": "Glidewell Dental Lab",
+      "risk_level": "on_track",
+      "recommended_action": "No action needed — case is on track."
+    },
+    {
+      "appointment_id": "APT-2026-0802",
+      "patient_name": "James Rodriguez",
+      "time": "09:00",
+      "procedure": "Crown - porcelain/ceramic, tooth #8",
+      "procedure_code": "D2740",
+      "lab_case_id": "LC-4402",
+      "lab_case_status": "received_in_office",
+      "lab_name": "Keating Dental Lab",
+      "risk_level": "on_track",
+      "recommended_action": "No action needed — case is on track."
+    },
+    {
+      "appointment_id": "APT-2026-0803",
+      "patient_name": "Linda Patel",
+      "time": "10:00",
+      "procedure": "Comprehensive oral evaluation",
+      "procedure_code": "D0150",
+      "lab_case_id": null,
+      "lab_case_status": "no_case",
+      "lab_name": null,
+      "risk_level": "no_case_required",
+      "recommended_action": "No action needed — this appointment does not require a lab case."
+    },
+    {
+      "appointment_id": "APT-2026-0804",
+      "patient_name": "Michael Thompson",
+      "time": "11:00",
+      "procedure": "Abutment supported porcelain/ceramic crown, implant site #3",
+      "procedure_code": "D6058",
+      "lab_case_id": "LC-4403",
+      "lab_case_status": "in_progress",
+      "lab_name": "Aurum Group",
+      "risk_level": "at_risk",
+      "recommended_action": "Contact Aurum Group to confirm shipping status and expected delivery date."
+    },
+    {
+      "appointment_id": "APT-2026-0805",
+      "patient_name": "Patricia Lewis",
+      "time": "13:00",
+      "procedure": "Prophylaxis - adult",
+      "procedure_code": "D1110",
+      "lab_case_id": null,
+      "lab_case_status": "no_case",
+      "lab_name": null,
+      "risk_level": "no_case_required",
+      "recommended_action": "No action needed — this appointment does not require a lab case."
+    },
+    {
+      "appointment_id": "APT-2026-0806",
+      "patient_name": "David Kim",
+      "time": "14:00",
+      "procedure": "Complete denture - maxillary",
+      "procedure_code": "D5110",
+      "lab_case_id": "LC-4404",
+      "lab_case_status": "overdue_no_update",
+      "lab_name": "Glidewell Dental Lab",
+      "risk_level": "critical_missing",
+      "recommended_action": "URGENT: Case has had no update since it was sent. Verify with lab immediately. Consider proactive patient reschedule."
+    },
+    {
+      "appointment_id": "APT-2026-0807",
+      "patient_name": "Maria Gonzalez",
+      "time": "15:00",
+      "procedure": "Crown - porcelain fused to high noble metal, tooth #30",
+      "procedure_code": "D2750",
+      "lab_case_id": "LC-4405",
+      "lab_case_status": "in_transit_to_lab",
+      "lab_name": "Keating Dental Lab",
+      "risk_level": "critical_missing",
+      "recommended_action": "URGENT: Contact Keating Dental Lab immediately to confirm receipt and get ETA. Consider calling patient to discuss possible reschedule."
+    },
+    {
+      "appointment_id": "APT-2026-0808",
+      "patient_name": "Robert Johnson",
+      "time": "16:00",
+      "procedure": "Comprehensive orthodontic treatment - adult",
+      "procedure_code": "D8090",
+      "lab_case_id": "LC-4406",
+      "lab_case_status": "critical_missing",
+      "lab_name": "[Lab Name]",
+      "risk_level": "critical_missing",
+      "recommended_action": "URGENT: Case has had no update since it was sent. Verify with lab immediately. Consider proactive patient reschedule."
+    }
+  ],
+  "summary": {
+    "on_track": 2,
+    "at_risk": 1,
+    "critical_missing": 3,
+    "no_case_required": 2
+  },
+  "voice_summary": "3 critical lab case issues for tomorrow: David Kim, Maria Gonzalez, Robert Johnson. 1 at risk. Immediate action required."
+}

@@ -17,7 +17,7 @@ PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python streamlit run app/streamlit_app.py
 ```
 
 Opens at `http://localhost:8501`. Each "Run Audit" click costs ~$0.05. Results are cached in session.  
-Works in **offline mode** (no API key) — shows pre-computed results for all 3 cases.
+Works in **offline mode** (no API key) — shows pre-computed results for all 4 cases.
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for Streamlit Community Cloud deployment.
 
@@ -25,7 +25,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for Streamlit Community Cloud deplo
 
 ## Problem
 
-ToothTrust is a voice-first multi-agent platform for the dental office. Every staff role — assistant, hygienist, treatment coordinator, dentist — has a specialized AI copilot that works hands-free through voice commands.
+ToothTrust is a voice-first multi-agent platform for the dental office. Every staff role — assistant, hygienist, treatment coordinator, front desk, and dentist — has a specialized AI copilot that works hands-free through voice commands. LabCaseAgent is complementary to Dentrix Lab Case Manager: it surfaces lab case risk proactively so front desk staff catch issues before patients arrive, not after.
 
 The core problem: dental staff are always busy with their hands. Gloves, instruments, patient contact. Every time someone needs to look something up, chart a finding, explain a procedure, or document a visit, they have to stop what they're doing. That friction compounds across 20+ patients a day per provider.
 
@@ -45,6 +45,7 @@ The voice layer removes that friction for every role. The agent layer gives each
 | DocumentationAgent | Dentist | "Draft the note" / "Sign it" | Ambient SOAP note draft → voice review → sign |
 | TreatmentCoordinatorAgent | Treatment Coordinator | "Explain this to the patient" | Audit result → plain-language patient script |
 | PerioChartAgent | Hygienist | "Tooth 3 distobuccal 4 buccal 3..." | Voice probe calls → structured perio chart + AAP staging |
+| LabCaseAgent | Front Desk / Office Manager | "Scan tomorrow's lab cases" | Proactive lab case risk scan + handoff attribution |
 
 ### v2 — Designed, not yet built
 
@@ -73,11 +74,23 @@ VideaHealth, Pearl, and Overjet solve the imaging interpretation problem — the
 
 ## Demo Cases
 
-Three mock cases demonstrate the multi-agent model end-to-end. See `data/mock_cases/`:
+Four mock cases demonstrate the multi-agent model end-to-end. See `data/mock_cases/`:
 
 - **Case 1** ([case_01_crown_vs_composite](data/mock_cases/case_01_crown_vs_composite/)): AuditAgent flags a D2750 crown as likely overtreatment for a 30% occlusal caries lesion; recommends D2391 composite ($1,180 savings).
 - **Case 2** ([case_02_endo_vs_extraction](data/mock_cases/case_02_endo_vs_extraction/)): AuditAgent + TreatmentCoordinatorAgent — flags missing endo option for tooth #8; TC script gives patient Options A and B with outcomes, timelines, and costs.
-- **Case 3** ([case_03_perio_voice](data/mock_cases/case_03_perio_voice/)): PerioChartAgent converts hygienist's voice probe transcript into a structured periodontal chart with AAP 2017 Stage II, Grade B staging.
+- **Case 3** ([case_03_perio_voice](data/mock_cases/case_03_perio_voice/)): PerioChartAgent converts hygienist's voice probe transcript into a structured periodontal chart with AAP 2017 Stage III, Grade B staging.
+- **Case 4** ([case_04_lab_case_risk](data/mock_cases/case_04_lab_case_risk/)): LabCaseAgent scans 8 appointments for lab case risk — surfaces 3 critical, 1 at-risk; attributes the Robert Johnson case breakdown to a missing `lab_received` handoff step.
+
+### Personas
+
+| Persona | Role | Key JTBD | Agent |
+|---|---|---|---|
+| Maria, CDA | Dental Assistant | Chart without de-gloving | ChartAgent |
+| Dr. Priya Patel | Associate Dentist (DSO) | Leave by 6pm; justify treatment | AuditAgent, DocumentationAgent, ResearchAgent |
+| Karen | Treatment Coordinator | Present plans confidently in plain language | TreatmentCoordinatorAgent |
+| Susan, RDH | Hygienist | Chart probe depths hands-free | PerioChartAgent |
+| Diana Martinez | Front Desk Coordinator | Know lab case risks before patients arrive | LabCaseAgent |
+| James | Patient | Understand if treatment is evidence-backed | AuditAgent |
 
 ---
 

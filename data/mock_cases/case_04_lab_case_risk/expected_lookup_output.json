@@ -1,0 +1,17 @@
+{
+  "_note": "Deterministic expected output from LabCaseAgent.lookup_case('Sarah Chen'). No Claude API call needed.",
+  "intent": "lab_case_lookup",
+  "found": true,
+  "patient_name": "Sarah Chen",
+  "appointment_time": "08:00",
+  "case_number": "LC-4401",
+  "lab_name": "Glidewell Dental Lab",
+  "procedure": "PFM Crown D2750 - tooth #19",
+  "date_sent": "2026-05-15",
+  "expected_return": "2026-05-21",
+  "current_status": "shipped_back",
+  "last_update": "2026-05-20T14:30:00",
+  "days_until_appointment": 1,
+  "risk_level": "on_track",
+  "recommended_action": "No action needed — case is on track."
+}

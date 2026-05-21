@@ -1,0 +1,228 @@
+{
+  "_mock": true,
+  "_note": "MOCK DATA — not real lab case records. Used for LabCaseAgent demo only. Production reads from and writes to Dentrix Lab Case Manager via Henry Schein One LinkIt API (mock interface in v1).",
+  "lab_cases": [
+    {
+      "case_id": "LC-4401",
+      "patient_id": "PT-1001",
+      "patient_name": "Sarah Chen",
+      "lab_name": "Glidewell Dental Lab",
+      "procedure": "PFM Crown D2750 - tooth #19",
+      "date_sent": "2026-05-15",
+      "expected_return": "2026-05-21",
+      "current_status": "shipped_back",
+      "last_update_timestamp": "2026-05-20T14:30:00",
+      "tracking_notes": "Shipped via FedEx. Expected delivery 2026-05-21.",
+      "handoff_history": [
+        {
+          "step": "created",
+          "timestamp": "2026-05-14T09:15:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Lab case created in Dentrix Lab Case Manager for Sarah Chen crown #19."
+        },
+        {
+          "step": "sent_to_lab",
+          "timestamp": "2026-05-15T11:00:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Case packaged and sent via FedEx to Glidewell Dental Lab."
+        },
+        {
+          "step": "lab_received",
+          "timestamp": "2026-05-16T08:45:00",
+          "role_responsible": "lab",
+          "notes": "Glidewell confirmed receipt."
+        },
+        {
+          "step": "lab_in_progress",
+          "timestamp": "2026-05-17T10:00:00",
+          "role_responsible": "lab",
+          "notes": "Crown fabrication in progress."
+        },
+        {
+          "step": "lab_shipped",
+          "timestamp": "2026-05-20T14:30:00",
+          "role_responsible": "lab",
+          "notes": "Shipped back via FedEx. Tracking: 794644782798."
+        }
+      ]
+    },
+    {
+      "case_id": "LC-4402",
+      "patient_id": "PT-1002",
+      "patient_name": "James Rodriguez",
+      "lab_name": "Keating Dental Lab",
+      "procedure": "All-ceramic Crown D2740 - tooth #8",
+      "date_sent": "2026-05-14",
+      "expected_return": "2026-05-21",
+      "current_status": "received_in_office",
+      "last_update_timestamp": "2026-05-21T08:00:00",
+      "tracking_notes": "Received in office. Ready for cementation.",
+      "handoff_history": [
+        {
+          "step": "created",
+          "timestamp": "2026-05-13T10:00:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Lab case created for James Rodriguez crown #8."
+        },
+        {
+          "step": "sent_to_lab",
+          "timestamp": "2026-05-14T10:30:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Sent to Keating Dental Lab."
+        },
+        {
+          "step": "lab_received",
+          "timestamp": "2026-05-15T09:00:00",
+          "role_responsible": "lab",
+          "notes": "Keating confirmed receipt."
+        },
+        {
+          "step": "lab_in_progress",
+          "timestamp": "2026-05-16T08:00:00",
+          "role_responsible": "lab",
+          "notes": "Fabrication in progress."
+        },
+        {
+          "step": "lab_shipped",
+          "timestamp": "2026-05-19T15:00:00",
+          "role_responsible": "lab",
+          "notes": "Shipped back."
+        },
+        {
+          "step": "office_received",
+          "timestamp": "2026-05-21T08:00:00",
+          "role_responsible": "front_desk",
+          "notes": "Received and checked into Dentrix Lab Case Manager."
+        }
+      ]
+    },
+    {
+      "case_id": "LC-4403",
+      "patient_id": "PT-1004",
+      "patient_name": "Michael Thompson",
+      "lab_name": "Aurum Group",
+      "procedure": "Implant Crown D6058 - site #3",
+      "date_sent": "2026-05-16",
+      "expected_return": "2026-05-23",
+      "current_status": "in_progress",
+      "last_update_timestamp": "2026-05-19T11:00:00",
+      "tracking_notes": "Lab confirmed in progress, on schedule for 05-23 return.",
+      "handoff_history": [
+        {
+          "step": "created",
+          "timestamp": "2026-05-15T14:00:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Lab case created for Michael Thompson implant crown site #3."
+        },
+        {
+          "step": "sent_to_lab",
+          "timestamp": "2026-05-16T10:00:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Sent to Aurum Group with digital impressions."
+        },
+        {
+          "step": "lab_received",
+          "timestamp": "2026-05-17T09:30:00",
+          "role_responsible": "lab",
+          "notes": "Aurum Group confirmed receipt."
+        },
+        {
+          "step": "lab_in_progress",
+          "timestamp": "2026-05-19T11:00:00",
+          "role_responsible": "lab",
+          "notes": "In fabrication. ETA confirmed 2026-05-23."
+        }
+      ]
+    },
+    {
+      "case_id": "LC-4404",
+      "patient_id": "PT-1006",
+      "patient_name": "David Kim",
+      "lab_name": "Glidewell Dental Lab",
+      "procedure": "Complete maxillary denture D5110",
+      "date_sent": "2026-05-10",
+      "expected_return": "2026-05-20",
+      "current_status": "overdue_no_update",
+      "last_update_timestamp": "2026-05-14T16:00:00",
+      "tracking_notes": "No update since lab_in_progress on 05-14. Expected return was 05-20. Appointment is 05-22.",
+      "handoff_history": [
+        {
+          "step": "created",
+          "timestamp": "2026-05-09T11:00:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Lab case created for David Kim maxillary denture."
+        },
+        {
+          "step": "sent_to_lab",
+          "timestamp": "2026-05-10T10:00:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Sent to Glidewell Dental Lab."
+        },
+        {
+          "step": "lab_received",
+          "timestamp": "2026-05-12T08:30:00",
+          "role_responsible": "lab",
+          "notes": "Glidewell confirmed receipt."
+        },
+        {
+          "step": "lab_in_progress",
+          "timestamp": "2026-05-14T16:00:00",
+          "role_responsible": "lab",
+          "notes": "In fabrication. No further updates received."
+        }
+      ]
+    },
+    {
+      "case_id": "LC-4405",
+      "patient_id": "PT-1007",
+      "patient_name": "Maria Gonzalez",
+      "lab_name": "Keating Dental Lab",
+      "procedure": "PFM Crown D2750 - tooth #30",
+      "date_sent": "2026-05-19",
+      "expected_return": "2026-05-22",
+      "current_status": "in_transit_to_lab",
+      "last_update_timestamp": "2026-05-19T16:00:00",
+      "tracking_notes": "Case sent 05-19. Lab has not yet confirmed receipt. Appointment 05-22 — only 3 days turnaround.",
+      "handoff_history": [
+        {
+          "step": "created",
+          "timestamp": "2026-05-19T09:00:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Lab case created for Maria Gonzalez crown #30."
+        },
+        {
+          "step": "sent_to_lab",
+          "timestamp": "2026-05-19T16:00:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Sent to Keating Dental Lab via overnight courier."
+        }
+      ]
+    },
+    {
+      "case_id": "LC-4406",
+      "patient_id": "PT-1008",
+      "patient_name": "Robert Johnson",
+      "lab_name": "[Lab Name]",
+      "procedure": "Orthodontic appliance D8090",
+      "date_sent": "2026-05-08",
+      "expected_return": "2026-05-18",
+      "current_status": "critical_missing",
+      "last_update_timestamp": "2026-05-08T15:00:00",
+      "tracking_notes": "CRITICAL: Case sent 05-08. No lab receipt confirmation, no progress update, no return. Appointment is 05-22. This is the 'fell through the crack' demo case.",
+      "handoff_history": [
+        {
+          "step": "created",
+          "timestamp": "2026-05-08T09:30:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Lab case created for Robert Johnson orthodontic appliance."
+        },
+        {
+          "step": "sent_to_lab",
+          "timestamp": "2026-05-08T15:00:00",
+          "role_responsible": "dental_assistant",
+          "notes": "Sent to lab. No tracking number recorded."
+        }
+      ]
+    }
+  ]
+}

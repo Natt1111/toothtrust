@@ -68,6 +68,17 @@ CASES: dict[str, dict] = {
         "has_tc": False,
         "icon": "🎙️",
     },
+    "case_04": {
+        "id": "case_04",
+        "title": "Lab Case Risk Scanner",
+        "subtitle": "Front Desk + Office Manager",
+        "savings_label": "Prevents lost appointments",
+        "agent_label": "LabCaseAgent",
+        "dir": ROOT / "data/mock_cases/case_04_lab_case_risk",
+        "kind": "lab_case",
+        "has_tc": False,
+        "icon": "🗓️",
+    },
 }
 
 V1_AGENTS = [
@@ -112,6 +123,13 @@ V1_AGENTS = [
         "job": "Transcribes voice probe calls into a structured chart with AAP 2017 staging.",
         "example": '"Tooth 3 distobuccal 4 buccal 3 mesiobuccal 5 bleeding"',
         "icon": "🩺",
+    },
+    {
+        "name": "LabCaseAgent",
+        "user": "Front Desk / Office Manager",
+        "job": "Proactively scans tomorrow's lab cases, surfaces at-risk appointments, identifies handoff gaps. Complementary to Dentrix Lab Case Manager.",
+        "example": '"Scan tomorrow\'s lab cases"',
+        "icon": "🗓️",
     },
 ]
 
@@ -247,7 +265,8 @@ Built in five days with Claude Code. Three end-to-end demo cases with real API v
         )
 
     st.markdown("---")
-    st.markdown("### The 6-Agent Platform — v1")
+    st.markdown("### The 7-Agent Platform — v1")
+    st.caption("All agents deployed, tested, and integrated with the voice orchestration layer.")
 
     for row_start in range(0, len(V1_AGENTS), 3):
         cols = st.columns(3, gap="medium")
@@ -285,7 +304,7 @@ def page_demo() -> None:
     st.markdown("---")
 
     # ── Case selector cards ────────────────────────────────────────────────────
-    sel_cols = st.columns(3, gap="medium")
+    sel_cols = st.columns(4, gap="medium")
     for col, (case_id, cfg) in zip(sel_cols, CASES.items()):
         with col:
             is_selected = st.session_state.get("selected_case") == case_id
@@ -293,10 +312,8 @@ def page_demo() -> None:
             with st.container(border=True):
                 st.markdown(f"### {cfg['icon']} {cfg['title']}")
                 st.caption(cfg["subtitle"])
-                st.markdown(
-                    _pill(cfg["savings_label"], "#059669" if cfg["kind"] == "audit" else "#2563EB"),
-                    unsafe_allow_html=True,
-                )
+                pill_color = {"audit": "#059669", "perio": "#2563EB", "lab_case": "#7C3AED"}.get(cfg["kind"], "#2563EB")
+                st.markdown(_pill(cfg["savings_label"], pill_color), unsafe_allow_html=True)
                 st.markdown("&nbsp;")
                 st.caption(f"Agents: *{cfg['agent_label']}*")
                 if st.button(
@@ -327,6 +344,8 @@ def page_demo() -> None:
 
     if cfg["kind"] == "audit":
         _run_audit_case(selected, cfg, files)
+    elif cfg["kind"] == "lab_case":
+        _run_lab_case_case(selected, cfg, files)
     else:
         _run_perio_case(selected, cfg, files)
 
@@ -752,6 +771,191 @@ def _render_perio_result(cached: dict) -> None:
             st.markdown(f"*Grading rationale:* {summary.get('grading_rationale', '')}")
 
 
+# ── Lab Case demo page ────────────────────────────────────────────────────────
+
+def _run_lab_case_case(case_id: str, cfg: dict, files: dict) -> None:
+    import pandas as pd
+    import json as _json
+
+    st.markdown("#### 🗓️ Tomorrow's Schedule — May 22, 2026")
+    st.caption("Simulated 7am morning scan. Diana (Front Desk Coordinator) checks lab case readiness before the day starts.")
+
+    # Load appointments for display
+    apts_path = ROOT / "data/mock_data/appointments.json"
+    try:
+        apts = _json.loads(apts_path.read_text())["appointments"]
+        df = pd.DataFrame([{
+            "Time": a["time"],
+            "Patient": a["patient_name"],
+            "Procedure": a["procedure_name"],
+            "Code": a["procedure_code"],
+            "Lab Case?": "✓" if a["requires_lab_case"] else "—",
+        } for a in apts])
+        st.dataframe(df, hide_index=True, use_container_width=True)
+    except Exception as exc:
+        st.error(f"Could not load appointments: {exc}")
+        return
+
+    st.markdown("&nbsp;")
+
+    cache_key = f"result_{case_id}"
+    cached = st.session_state.get(cache_key)
+
+    if cached is None:
+        if st.button("▶ Run Lab Case Scan", type="primary", key=f"run_{case_id}"):
+            with st.spinner("LabCaseAgent — cross-referencing appointments with lab case statuses…"):
+                try:
+                    from src.agents.lab_case_agent import LabCaseAgent
+                    agent = LabCaseAgent()
+                    result = agent.scan_tomorrows_appointments()
+                    st.session_state[cache_key] = result
+                    st.rerun()
+                except Exception as exc:
+                    st.error(f"LabCaseAgent error: {exc}")
+                    with st.expander("Stack trace"):
+                        st.exception(exc)
+    else:
+        if st.button("↺ Clear & Re-run", key=f"clear_{case_id}"):
+            st.session_state.pop(cache_key, None)
+            for k in list(st.session_state.keys()):
+                if k.startswith(f"attr_{case_id}_") or k.startswith(f"resched_{case_id}_"):
+                    st.session_state.pop(k, None)
+            st.rerun()
+        _render_lab_case_result(case_id, cached)
+
+
+def _render_lab_case_result(case_id: str, scan: dict) -> None:
+    import pandas as pd
+
+    st.markdown("---")
+    st.markdown("### Lab Case Scan Result")
+
+    summary = scan.get("summary", {})
+
+    # 4 metric cards
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("✅ On Track", summary.get("on_track", 0))
+    m2.metric("⚡ At Risk", summary.get("at_risk", 0))
+    m3.metric("🚨 Critical", summary.get("critical_missing", 0))
+    m4.metric("— No Case Needed", summary.get("no_case_required", 0))
+
+    st.markdown("&nbsp;")
+
+    # Voice summary callout
+    voice = scan.get("voice_summary", "")
+    if voice:
+        critical_count = summary.get("critical_missing", 0)
+        if critical_count > 0:
+            st.error(f"🔊 **Voice readback:** {voice}")
+        elif summary.get("at_risk", 0) > 0:
+            st.warning(f"🔊 **Voice readback:** {voice}")
+        else:
+            st.success(f"🔊 **Voice readback:** {voice}")
+
+    st.markdown("&nbsp;")
+
+    # Color-coded appointment list
+    _RISK_COLORS = {
+        "on_track":        ("#059669", "✅ On Track"),
+        "at_risk":         ("#D97706", "⚡ At Risk"),
+        "critical_missing":("#DC2626", "🚨 Critical"),
+        "no_case_required":("#6B7280", "— No Case"),
+    }
+
+    for apt in scan.get("appointments", []):
+        risk = apt.get("risk_level", "")
+        color, label = _RISK_COLORS.get(risk, ("#6B7280", risk))
+        badge = (
+            f'<span style="background:{color};color:white;padding:2px 10px;'
+            f'border-radius:10px;font-size:0.8em;font-weight:600;">{label}</span>'
+        )
+        with st.container(border=True):
+            row_l, row_r = st.columns([3, 2])
+            with row_l:
+                st.markdown(
+                    f"**{apt['time']}** — {apt['patient_name']}  \n"
+                    f"{apt['procedure']} `{apt['procedure_code']}`"
+                )
+                st.markdown(badge, unsafe_allow_html=True)
+            with row_r:
+                action = apt.get("recommended_action", "")
+                if action:
+                    st.caption(action)
+
+            # Attribution + Reschedule for critical cases
+            if risk == "critical_missing" and apt.get("lab_case_id"):
+                lc_id = apt["lab_case_id"]
+                patient = apt["patient_name"]
+
+                attr_key   = f"attr_{case_id}_{lc_id}"
+                resched_key = f"resched_{case_id}_{lc_id}"
+
+                acol, rcol = st.columns(2)
+                with acol:
+                    if st.button(f"🔍 Where did it fall through?", key=f"attr_btn_{case_id}_{lc_id}"):
+                        try:
+                            from src.agents.lab_case_agent import LabCaseAgent
+                            result = LabCaseAgent().attribution_check(lc_id)
+                            st.session_state[attr_key] = result
+                            st.rerun()
+                        except Exception as exc:
+                            st.error(f"Attribution error: {exc}")
+
+                with rcol:
+                    if _api_key_present():
+                        if st.button(f"✉️ Draft Reschedule", key=f"resched_btn_{case_id}_{lc_id}"):
+                            with st.spinner("Drafting reschedule message…"):
+                                try:
+                                    from src.agents.lab_case_agent import LabCaseAgent
+                                    drafts = LabCaseAgent().recommend_reschedules()
+                                    st.session_state[resched_key] = drafts
+                                    st.rerun()
+                                except Exception as exc:
+                                    st.error(f"Reschedule error: {exc}")
+
+                if attr_key in st.session_state:
+                    attr = st.session_state[attr_key]
+                    with st.expander(f"📋 Attribution — {patient}", expanded=True):
+                        steps = attr.get("handoff_history", [])
+                        broken = attr.get("broken_step")
+                        step_order = ["created", "sent_to_lab", "lab_received",
+                                      "lab_in_progress", "lab_shipped", "office_received"]
+                        completed = {h["step"] for h in steps}
+                        for step in step_order:
+                            if step in completed:
+                                h = next(s for s in steps if s["step"] == step)
+                                st.markdown(
+                                    f"✅ **{step.replace('_', ' ').title()}** — "
+                                    f"{h['timestamp'][:10]}  \n"
+                                    f"<span style='color:#6B7280;font-size:0.85em'>{h['notes']}</span>",
+                                    unsafe_allow_html=True,
+                                )
+                            elif step == broken:
+                                st.markdown(
+                                    f"❌ **{step.replace('_', ' ').title()}** — *missing*  \n"
+                                    f"<span style='color:#DC2626;font-size:0.85em'>"
+                                    f"{attr.get('suggested_fix', '')}</span>",
+                                    unsafe_allow_html=True,
+                                )
+                                break
+                            else:
+                                st.markdown(f"⬜ {step.replace('_', ' ').title()}")
+                        st.caption(attr.get("framing_note", ""))
+
+                if resched_key in st.session_state:
+                    drafts_result = st.session_state[resched_key]
+                    for d in drafts_result.get("drafts", []):
+                        if d["patient_name"] == patient:
+                            with st.expander(f"✉️ Reschedule draft — {patient}", expanded=True):
+                                st.text_area(
+                                    "Copy-ready message",
+                                    value=d["draft_message"],
+                                    height=120,
+                                    key=f"msg_{case_id}_{lc_id}",
+                                )
+                                st.caption(f"Suggested new date: {d['suggested_new_date']}")
+
+
 # ── Architecture page ──────────────────────────────────────────────────────────
 
 def page_architecture() -> None:
@@ -766,18 +970,20 @@ def page_architecture() -> None:
   Speech-to-Text  (Deepgram)
         │
         ▼
-  Intent Router  (Claude classifier — chart / audit / research / document / tc_script / perio)
+  Intent Router  (Claude classifier — chart / audit / research / document / tc_script / perio / lab_case)
         │
         ├── chart     ──▶  ChartAgent              ──▶  Dentrix chart entry + CDT code
         ├── audit     ──▶  AuditAgent              ──▶  Evidence verdict + flags + citations
         │                     └── on partial/unsup ──▶  TreatmentCoordinatorAgent ──▶ patient script
         ├── research  ──▶  ResearchAgent           ──▶  RAG answer + cited sources
         ├── document  ──▶  DocumentationAgent      ──▶  SOAP draft → review → voice sign
-        └── perio     ──▶  PerioChartAgent         ──▶  Structured chart + AAP 2017 staging
-                │
+        ├── perio     ──▶  PerioChartAgent         ──▶  Structured chart + AAP 2017 staging
+        └── lab_case  ──▶  LabCaseAgent            ──▶  Risk scan · lookup · attribution · reschedule
+                │                                        (complementary to Dentrix Lab Case Manager)
                 ▼
-      ChromaDB Vector Store
-      30 dental evidence docs · 64 chunks · all-MiniLM-L6-v2 embeddings""", language=None)
+      ChromaDB Vector Store                    Mock Dentrix Interface (v1)
+      30 dental evidence docs                  → Henry Schein One LinkIt API (production)
+      64 chunks · all-MiniLM-L6-v2""", language=None)
 
     st.markdown("---")
     st.markdown("### Agent Details")

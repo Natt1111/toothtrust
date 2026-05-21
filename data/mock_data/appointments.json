@@ -1,0 +1,95 @@
+{
+  "_mock": true,
+  "_note": "MOCK DATA — not real patient records. Used for LabCaseAgent demo only. Production reads from Dentrix Appointment Book via Henry Schein One LinkIt API.",
+  "_demo_date": "2026-05-22",
+  "appointments": [
+    {
+      "appointment_id": "APT-2026-0801",
+      "patient_name": "Sarah Chen",
+      "patient_id": "PT-1001",
+      "time": "08:00",
+      "provider": "Dr. Patel",
+      "procedure_code": "D2750",
+      "procedure_name": "Crown - porcelain fused to high noble metal, tooth #19",
+      "requires_lab_case": true,
+      "lab_case_id": "LC-4401"
+    },
+    {
+      "appointment_id": "APT-2026-0802",
+      "patient_name": "James Rodriguez",
+      "patient_id": "PT-1002",
+      "time": "09:00",
+      "provider": "Dr. Patel",
+      "procedure_code": "D2740",
+      "procedure_name": "Crown - porcelain/ceramic, tooth #8",
+      "requires_lab_case": true,
+      "lab_case_id": "LC-4402"
+    },
+    {
+      "appointment_id": "APT-2026-0803",
+      "patient_name": "Linda Patel",
+      "patient_id": "PT-1003",
+      "time": "10:00",
+      "provider": "Dr. Patel",
+      "procedure_code": "D0150",
+      "procedure_name": "Comprehensive oral evaluation",
+      "requires_lab_case": false,
+      "lab_case_id": null
+    },
+    {
+      "appointment_id": "APT-2026-0804",
+      "patient_name": "Michael Thompson",
+      "patient_id": "PT-1004",
+      "time": "11:00",
+      "provider": "Dr. Patel",
+      "procedure_code": "D6058",
+      "procedure_name": "Abutment supported porcelain/ceramic crown, implant site #3",
+      "requires_lab_case": true,
+      "lab_case_id": "LC-4403"
+    },
+    {
+      "appointment_id": "APT-2026-0805",
+      "patient_name": "Patricia Lewis",
+      "patient_id": "PT-1005",
+      "time": "13:00",
+      "provider": "Dr. Patel",
+      "procedure_code": "D1110",
+      "procedure_name": "Prophylaxis - adult",
+      "requires_lab_case": false,
+      "lab_case_id": null
+    },
+    {
+      "appointment_id": "APT-2026-0806",
+      "patient_name": "David Kim",
+      "patient_id": "PT-1006",
+      "time": "14:00",
+      "provider": "Dr. Patel",
+      "procedure_code": "D5110",
+      "procedure_name": "Complete denture - maxillary",
+      "requires_lab_case": true,
+      "lab_case_id": "LC-4404"
+    },
+    {
+      "appointment_id": "APT-2026-0807",
+      "patient_name": "Maria Gonzalez",
+      "patient_id": "PT-1007",
+      "time": "15:00",
+      "provider": "Dr. Patel",
+      "procedure_code": "D2750",
+      "procedure_name": "Crown - porcelain fused to high noble metal, tooth #30",
+      "requires_lab_case": true,
+      "lab_case_id": "LC-4405"
+    },
+    {
+      "appointment_id": "APT-2026-0808",
+      "patient_name": "Robert Johnson",
+      "patient_id": "PT-1008",
+      "time": "16:00",
+      "provider": "Dr. Patel",
+      "procedure_code": "D8090",
+      "procedure_name": "Comprehensive orthodontic treatment - adult",
+      "requires_lab_case": true,
+      "lab_case_id": "LC-4406"
+    }
+  ]
+}

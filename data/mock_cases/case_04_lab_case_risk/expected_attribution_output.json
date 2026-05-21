@@ -1,0 +1,12 @@
+{
+  "_note": "Deterministic expected output from LabCaseAgent.attribution_check('LC-4406') — the critical_missing 'fell through the crack' demo case. No Claude API call needed.",
+  "intent": "lab_case_attribution",
+  "found": true,
+  "case_id": "LC-4406",
+  "patient_name": "Robert Johnson",
+  "last_completed_step": "sent_to_lab",
+  "broken_step": "lab_received",
+  "responsible_role": "Dental Lab",
+  "suggested_fix": "No receipt confirmation on file. Contact the lab to confirm they received the case and establish an ETA. Add tracking numbers to future outbound shipments.",
+  "framing_note": "This reflects a workflow gap, not individual failure. Standard practice does not always include automated receipt confirmation from labs."
+}

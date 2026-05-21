@@ -1,5 +1,7 @@
 # Feature Ideas
 
+> **Note**: LabCaseAgent was originally considered for v2 but has been promoted to **v1** and fully implemented in `src/agents/lab_case_agent.py`. See `docs/ADR/0004-lab-case-agent-positioning.md`.
+
 ---
 
 ## Patient Education Agent (v2)
