@@ -4,6 +4,25 @@
 
 ---
 
+## Live Demo
+
+```bash
+# Quick start (requires Python 3.11 + uv)
+git clone https://github.com/Natt1111/toothtrust.git && cd toothtrust
+uv venv --python 3.11 && source .venv/bin/activate
+uv pip install streamlit chromadb sentence-transformers anthropic pypdf python-dotenv pandas \
+  "numpy<2" "torch==2.1.2" "chromadb==0.5.23" "protobuf>=3.20,<4"
+cp .env.example .env   # add your ANTHROPIC_API_KEY
+PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python streamlit run app/streamlit_app.py
+```
+
+Opens at `http://localhost:8501`. Each "Run Audit" click costs ~$0.05. Results are cached in session.  
+Works in **offline mode** (no API key) — shows pre-computed results for all 3 cases.
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for Streamlit Community Cloud deployment.
+
+---
+
 ## Problem
 
 ToothTrust is a voice-first multi-agent platform for the dental office. Every staff role — assistant, hygienist, treatment coordinator, dentist — has a specialized AI copilot that works hands-free through voice commands.
