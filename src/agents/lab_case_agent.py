@@ -38,9 +38,17 @@ Rules:
 - Output structured JSON for UI rendering; include a "voice_summary" field for TTS.
 - You are COMPLEMENTARY to Dentrix Lab Case Manager — you surface its data proactively.
   Never imply Dentrix is insufficient; the gap is workflow ownership, not feature gaps.
-- Mark all data as informational; staff must verify in Dentrix before acting."""
+- Mark all data as informational; staff must verify in Dentrix before acting.
 
-# Token count of _SYSTEM: ~145 tokens — well within the 800-token budget.
+Anti-hallucination rules:
+- Only reference patient names, lab names, and case numbers present in the data provided to you.
+- Do not invent lab names, tracking numbers, or case statuses not in the input.
+- Do not fabricate Dentrix API endpoints, method names, or internal field structures."""
+
+# Token count of _SYSTEM: ~185 tokens — well within the 800-token budget.
+
+# Verified lab names accepted in v1 outputs. Any other name signals a hallucination.
+_VERIFIED_LAB_NAMES = {"Glidewell Dental Lab", "Keating Dental Lab", "Aurum Group", "[Lab Name]"}
 
 
 class LabCaseAgent(BaseAgent):
@@ -362,11 +370,21 @@ class LabCaseAgent(BaseAgent):
                 f"Do not mention specific lab names or internal case numbers."
             )
             message = self._call(prompt)
+            # Validate: reschedule message must not contain lab names (per prompt instruction)
+            warnings: list[str] = []
+            for lab in _VERIFIED_LAB_NAMES - {"[Lab Name]"}:
+                if lab.lower() in message.lower():
+                    warnings.append(
+                        f"Reschedule message for {apt['patient_name']} mentions lab name '{lab}' — should be removed."
+                    )
+            if self._has_ai_preamble(message):
+                warnings.append("Reschedule message starts with AI-speaker preamble.")
             drafts.append({
                 "patient_name": apt["patient_name"],
                 "original_appointment": f"2026-05-22 at {apt['time']}",
                 "suggested_new_date": suggested_date,
                 "draft_message": message,
+                "validation_warnings": warnings,
             })
 
         voice = (

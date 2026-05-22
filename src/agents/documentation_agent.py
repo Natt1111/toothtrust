@@ -8,7 +8,6 @@ must be explicitly authorized by a voice command from the clinician ("sign it", 
 
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 
 _DRAFT_SYSTEM = """You are a dental clinical documentation specialist.
@@ -25,15 +24,26 @@ Output ONLY valid JSON in this exact schema:
   "cdt_codes": ["<code1>", "<code2>"]
 }
 
-Be concise and clinically precise. Use standard dental abbreviations (e.g., MOD, BOP, CAL).
-Do not invent findings not present in the input. If a field has no data, use an empty string."""
+Anti-hallucination rules:
+- Only document findings, symptoms, and procedures explicitly stated in the clinician's dictation.
+- Do not infer, assume, or add clinical findings not present in the input.
+- CDT codes must follow D#### format. If none were stated, leave cdt_codes as an empty list.
+- If a SOAP field has no data from the input, use an empty string — do not fabricate content.
+- Be concise and clinically precise. Use standard dental abbreviations (e.g., MOD, BOP, CAL)."""
 
 _REVIEW_SYSTEM = """You are a dental clinical documentation reviewer.
 The dentist is reviewing a drafted SOAP note by voice. Apply their requested changes precisely.
 Return ONLY the updated note as valid JSON using the same schema as the original.
-Do not add commentary. Do not change fields the dentist did not mention."""
+
+Anti-hallucination rules:
+- Do not change fields the dentist did not mention.
+- Do not add clinical findings not stated in the amendment request.
+- Do not add or modify CDT codes unless the dentist explicitly requested it.
+- Do not add commentary outside the JSON structure."""
 
 from src.agents.base_agent import BaseAgent
+
+_SOAP_FIELDS = {"subjective", "objective", "assessment", "plan", "medications", "patient_response", "cdt_codes"}
 
 
 class DocumentationAgent(BaseAgent):
@@ -83,6 +93,7 @@ class DocumentationAgent(BaseAgent):
     def _draft(
         self, utterance: str, session, patient_name: str, appointment_time: str
     ) -> dict:
+        import json
         context_parts = [utterance] if utterance else []
 
         if session and session.chart_entries:
@@ -98,8 +109,8 @@ class DocumentationAgent(BaseAgent):
         raw = self._call(prompt, system=_DRAFT_SYSTEM)
 
         try:
-            note = json.loads(raw)
-        except json.JSONDecodeError:
+            note = self._parse_json_response(raw)
+        except ValueError:
             note = {
                 "subjective": utterance,
                 "objective": "",
@@ -110,12 +121,15 @@ class DocumentationAgent(BaseAgent):
                 "cdt_codes": [],
             }
 
+        warnings = _validate_soap_note(note)
+
         draft = {
             "note": note,
             "patient_name": patient_name,
             "appointment_time": appointment_time or datetime.now(timezone.utc).isoformat(),
             "status": "pending_review",
             "signed_at": None,
+            "validation_warnings": warnings,
         }
 
         if session is not None:
@@ -132,6 +146,7 @@ class DocumentationAgent(BaseAgent):
             "response": notification,
             "draft": draft,
             "status": "pending_review",
+            "validation_warnings": warnings,
         }
 
     # ------------------------------------------------------------------
@@ -161,7 +176,6 @@ class DocumentationAgent(BaseAgent):
         if cmd.startswith("add:"):
             return self._amend_and_maybe_sign(utterance, draft, session)
 
-        # Generic amendment
         return self._amend(utterance, draft, session)
 
     def _read_aloud(self, draft: dict) -> dict:
@@ -197,7 +211,6 @@ class DocumentationAgent(BaseAgent):
         addition = utterance.split("add:", 1)[-1]
         if sign_after:
             addition = addition.replace(", then sign", "").replace(" then sign", "")
-
         draft = self._apply_amendment(addition.strip(), draft, session)
         if sign_after:
             return self._sign(draft, session)
@@ -218,14 +231,30 @@ class DocumentationAgent(BaseAgent):
         }
 
     def _apply_amendment(self, amendment_text: str, draft: dict, session) -> dict:
+        import json
         current_note_json = json.dumps(draft["note"])
         prompt = f"Current note:\n{current_note_json}\n\nAmendment requested: {amendment_text}"
         raw = self._call(prompt, system=_REVIEW_SYSTEM)
         try:
-            draft["note"] = json.loads(raw)
-        except json.JSONDecodeError:
+            draft["note"] = self._parse_json_response(raw)
+        except ValueError:
             plan = draft["note"].get("plan", "")
             draft["note"]["plan"] = f"{plan} | Amendment: {amendment_text}".strip(" | ")
+        draft["validation_warnings"] = _validate_soap_note(draft["note"])
         if session is not None:
             session.documentation_draft = draft
         return draft
+
+
+def _validate_soap_note(note: dict) -> list[str]:
+    """Return warnings for a SOAP note dict."""
+    import re
+    warnings: list[str] = []
+    missing = _SOAP_FIELDS - set(note.keys())
+    if missing:
+        warnings.append(f"SOAP note missing fields: {missing}")
+    cdt_re = re.compile(r"^D\d{4}$")
+    for code in note.get("cdt_codes", []):
+        if not cdt_re.match(str(code).strip()):
+            warnings.append(f"cdt_codes contains invalid code '{code}' — expected D#### format.")
+    return warnings

@@ -39,7 +39,12 @@ Rules:
 - Never use the words: periapical, radiolucency, obturation, endodontic, osseointegration, CAL, BOP, CDT.
 - Never guarantee outcomes. Use phrases like "in most cases", "typically", "the evidence shows".
 - Always present at least two options unless the audit result has only one viable path.
-- The recommendation framing must honor the patient's right to choose. No pressure language."""
+- The recommendation framing must honor the patient's right to choose. No pressure language.
+
+Anti-hallucination rules:
+- Only describe procedures and outcomes supported by the audit result provided to you. Do not invent additional treatment options not present in the audit.
+- Do not fabricate success rates, costs, or timelines not derivable from the audit result or general dental practice knowledge.
+- If the audit result is missing information, say so in the documentation_note rather than filling in invented data."""
 
 
 class TreatmentCoordinatorAgent(BaseAgent):
@@ -88,6 +93,7 @@ class TreatmentCoordinatorAgent(BaseAgent):
         except ValueError:
             script = {"opening": raw, "options": [], "recommendation_framing": "", "follow_up_questions_to_anticipate": [], "documentation_note": ""}
 
+        warnings = _validate_tc_script(script)
         response_preview = script.get("opening", "Patient conversation script ready.")
 
         return {
@@ -95,6 +101,7 @@ class TreatmentCoordinatorAgent(BaseAgent):
             "response": response_preview,
             "script": script,
             "patient_name": patient_name,
+            "validation_warnings": warnings,
         }
 
     @staticmethod
@@ -107,3 +114,19 @@ class TreatmentCoordinatorAgent(BaseAgent):
             if val is not None:
                 attrs[field] = val
         return json.dumps(attrs, indent=2) if attrs else str(audit_result)
+
+
+def _validate_tc_script(script: dict) -> list[str]:
+    """Return validation warnings for a TC script dict."""
+    warnings: list[str] = []
+    if not isinstance(script.get("options"), list) or len(script.get("options", [])) == 0:
+        warnings.append(
+            "TC script has no options — model may have failed to generate treatment alternatives."
+        )
+    for i, opt in enumerate(script.get("options", [])):
+        if not opt.get("plain_language"):
+            warnings.append(f"options[{i}] is missing plain_language explanation.")
+        cost = opt.get("estimated_cost")
+        if cost is not None and not isinstance(cost, (int, float)):
+            warnings.append(f"options[{i}].estimated_cost '{cost}' is not a number.")
+    return warnings

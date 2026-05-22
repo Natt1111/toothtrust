@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 
 import anthropic
@@ -42,11 +43,56 @@ Return ONLY valid JSON with this schema:
 }
 
 The recommended_alternative field is REQUIRED when overall_assessment is "unsupported" or
-"partially_supported". It should name the more conservative or evidence-aligned procedure.
-Set it to null when overall_assessment is "supported".
+"partially_supported". Set it to null when overall_assessment is "supported".
 
-You MUST cite only sources provided in the context. Do not fabricate citations.
-Frame everything as informational — you are not diagnosing or prescribing."""
+Anti-hallucination rules:
+- ONLY cite source documents listed in the Evidence excerpts provided below. Never cite sources not in the context.
+- Never fabricate CDT codes, clinical findings, or patient data not present in the input.
+- overall_assessment must be one of the four allowed values; confidence must be high/medium/low.
+- If the evidence does not support a conclusion, use "insufficient_evidence", not a fabricated rationale.
+- Frame everything as informational — you are not diagnosing or prescribing."""
+
+# Allowed values for post-processing validation
+_VALID_ASSESSMENTS = {"supported", "partially_supported", "unsupported", "insufficient_evidence", "error"}
+_VALID_VERDICTS = {"supported", "partially_supported", "unsupported", "insufficient_evidence"}
+_VALID_CONFIDENCE = {"high", "medium", "low"}
+_CDT_RE = re.compile(r"^D\d{4}$")
+
+
+def _validate_audit_output(data: dict, chunks: list[dict]) -> list[str]:
+    """Post-process audit JSON for hallucination signals. Returns list of warning strings."""
+    warnings: list[str] = []
+    allowed = {c["source"] for c in chunks}
+
+    # overall_assessment must be a known value
+    oa = data.get("overall_assessment", "")
+    if oa not in _VALID_ASSESSMENTS:
+        warnings.append(f"overall_assessment '{oa}' is not a valid value.")
+
+    # confidence must be a known value
+    conf = data.get("confidence", "")
+    if conf not in _VALID_CONFIDENCE:
+        warnings.append(f"confidence '{conf}' is not a valid value.")
+
+    for i, proc in enumerate(data.get("procedures", [])):
+        # Verdict validation
+        verdict = proc.get("verdict", "")
+        if verdict and verdict not in _VALID_VERDICTS:
+            warnings.append(f"procedure[{i}].verdict '{verdict}' is not a valid value.")
+
+        # CDT code format
+        code = proc.get("cdt_code", "")
+        if code and not _CDT_RE.match(code.strip()):
+            warnings.append(f"procedure[{i}].cdt_code '{code}' does not match D####  format.")
+
+        # Citation grounding — catch fabricated sources
+        fabricated = BaseAgent._validate_citations(proc.get("citations", []), allowed)
+        for fab in fabricated:
+            warnings.append(
+                f"procedure[{i}] cited '{fab}' which was not in the retrieved context — possible hallucination."
+            )
+
+    return warnings
 
 
 @dataclass
@@ -57,6 +103,7 @@ class AuditResult:
     missing_information: list[str]
     patient_summary: str
     recommended_alternative: dict = field(default_factory=dict)
+    validation_warnings: list[str] = field(default_factory=list)
     retrieved_chunks: list[dict] = field(default_factory=list)
     raw_response: str = ""
 
@@ -66,8 +113,7 @@ def audit_treatment_plan(
     patient_context: str = "",
     retriever: EvidenceRetriever | None = None,
 ) -> AuditResult:
-    """
-    Audit a treatment plan against evidence.
+    """Audit a treatment plan against evidence.
 
     Args:
         treatment_plan: List of dicts with keys: cdt_code, description, tooth (optional).
@@ -75,7 +121,7 @@ def audit_treatment_plan(
         retriever: EvidenceRetriever instance; created fresh if None.
 
     Returns:
-        AuditResult with verdict per procedure and citations.
+        AuditResult with verdict per procedure, citations, and validation_warnings.
     """
     if retriever is None:
         retriever = EvidenceRetriever()
@@ -118,6 +164,8 @@ Audit the treatment plan against the evidence above."""
             "recommended_alternative": {},
         }
 
+    warnings = _validate_audit_output(data, chunks)
+
     return AuditResult(
         overall_assessment=data.get("overall_assessment", ""),
         confidence=data.get("confidence", ""),
@@ -125,6 +173,7 @@ Audit the treatment plan against the evidence above."""
         missing_information=data.get("missing_information", []),
         patient_summary=data.get("patient_summary", ""),
         recommended_alternative=data.get("recommended_alternative") or {},
+        validation_warnings=warnings,
         retrieved_chunks=chunks,
         raw_response=raw,
     )
