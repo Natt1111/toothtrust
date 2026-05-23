@@ -11,8 +11,14 @@ End-to-end voice pipeline:
 Wake word:
     v1 uses "alexa" — a bundled openWakeWord model — as a stand-in for
     "Hey ToothTrust". Training a custom wake word model is a v2 task
-    (see docs/IDEAS.md). No external model files need to be downloaded;
-    the alexa model ships inside the openwakeword package.
+    (see docs/IDEAS.md).
+
+    Model download (automatic, one-time):
+    openwakeword does NOT include model files in its pip package.
+    On first run, _build_demo() calls openwakeword.utils.download_models()
+    which fetches ~7 MB of ONNX model files from GitHub releases and caches
+    them inside the package's resources/models/ directory. Subsequent runs
+    skip the download if the files already exist.
 
 Required env vars (.env):
     ANTHROPIC_API_KEY   — Claude routing and agent inference
@@ -274,6 +280,13 @@ def _build_demo() -> VoiceDemo:
     from openwakeword.model import Model
 
     from src.orchestrator import Orchestrator
+
+    # Download wake word + feature models on first run (no-op if already present).
+    # openwakeword does NOT bundle model files in its pip package — they are fetched
+    # from GitHub releases the first time and cached inside the package's resources dir.
+    from openwakeword.utils import download_models
+    print("Checking openWakeWord models (downloads on first run)…")
+    download_models([_WAKE_MODEL_NAME])
 
     dg_client = DeepgramClient(api_key=DEEPGRAM_API_KEY)
     el_client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
