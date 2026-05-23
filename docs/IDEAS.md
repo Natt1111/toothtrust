@@ -4,6 +4,32 @@
 
 ---
 
+## Custom "Hey ToothTrust" Wake Word Model (v2)
+
+**Trigger:** Replace the current `alexa` placeholder wake word with a branded activation phrase
+that reinforces the product name and reduces false positives.
+
+**Behavior:** openWakeWord supports training custom wake word models from recorded audio samples.
+A trained `hey_toothtrust_v1.tflite` model file would be dropped into
+`data/wake_word_models/` and loaded at startup via
+`Model(wakeword_models=["data/wake_word_models/hey_toothtrust_v1.tflite"])`.
+
+**Why this matters:**
+- "Alexa" is a household wake word — high false-positive rate in any home or mixed-use environment.
+- A custom model is harder to accidentally trigger and creates a stronger product identity.
+- Clinicians build trust faster with voice products that respond only to intentional activations.
+
+**Training sketch:**
+1. Record ~10 minutes of "Hey ToothTrust" samples from multiple speakers (different accents, distances, noise levels).
+2. Use the openWakeWord training pipeline (`openwakeword.train`) with the recorded samples + negative examples.
+3. Export as a `.tflite` model file and evaluate false-positive rate on a hold-out set.
+4. Drop the model file into `data/wake_word_models/` and set `WAKE_WORD_MODEL_PATH` in `.env`.
+   The `_build_demo()` factory in `scripts/voice_demo.py` reads this path automatically.
+
+**Required samples:** ~300–500 positive utterances from 5–10 speakers; standard desktop recording environment is sufficient for v1.
+
+---
+
 ## Patient Education Agent (v2)
 
 **Trigger:** Voice command from clinician or front desk staff (e.g., "Hey ToothTrust, show this patient the crown procedure video")

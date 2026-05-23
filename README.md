@@ -100,6 +100,64 @@ Four mock cases demonstrate the multi-agent model end-to-end. See `data/mock_cas
 
 ---
 
+## Stage 9 — Voice Demo
+
+A standalone CLI that demonstrates the full voice-first activation loop without a browser.
+
+### Install
+
+```bash
+# All audio deps are already in requirements.txt
+uv pip install -r requirements.txt
+```
+
+### Configure
+
+```bash
+cp .env.example .env
+# Fill in:
+#   ANTHROPIC_API_KEY   — Claude agent inference
+#   DEEPGRAM_API_KEY    — speech-to-text (Nova-2 Medical)
+#   ELEVENLABS_API_KEY  — text-to-speech
+#   TTS_VOICE_ID        — ElevenLabs voice ID (optional; defaults to Rachel 21m00Tcm4TlvDq8ikWAM)
+```
+
+### Run
+
+```bash
+python -m scripts.voice_demo
+```
+
+**macOS microphone note:** On first run macOS will request microphone access. Approve it in
+System Preferences → Privacy & Security → Microphone, then re-run.
+
+### Example voice commands
+
+Say **"alexa"** (the v1 placeholder wake word) then:
+
+| Command | Agent |
+|---|---|
+| "Alexa — audit the crown versus composite case" | AuditAgent |
+| "Alexa — scan tomorrow's lab cases" | LabCaseAgent |
+| "Alexa — what does the AAE say about retreatment success rates?" | ResearchAgent |
+| "Alexa — chart MO composite on tooth 14, A2 shade" | ChartAgent |
+| "Alexa — tooth 3 distobuccal 4 buccal 3 mesiobuccal 5 bleeding mesial" | PerioChartAgent |
+
+Full demo flow with expected spoken responses: [`scripts/voice_demo_examples.md`](scripts/voice_demo_examples.md)
+
+### Notes
+
+- Wake word is currently **"alexa"** as a placeholder. Training a custom **"Hey ToothTrust"** model
+  is documented in [docs/IDEAS.md](docs/IDEAS.md) as a v2 task.
+- Voice demo uses **ONNX runtime** for openWakeWord model inference. `onnxruntime` is included in
+  `requirements.txt`. macOS users: if you see `tflite` import errors, run `pip install onnxruntime`
+  — do **NOT** install `tflite-runtime`, which has poor macOS support.
+- Required env vars: `ANTHROPIC_API_KEY` + `DEEPGRAM_API_KEY` + `ELEVENLABS_API_KEY`
+- STT uses Deepgram **nova-2-medical** — optimised for clinical vocabulary.
+- TTS responses are capped at **200 characters** spoken aloud; full structured output is logged to the terminal.
+
+---
+
 ## Built with Claude Code
 
 <!-- TODO: Describe how Claude Code was used to scaffold, iterate, and review the codebase. -->

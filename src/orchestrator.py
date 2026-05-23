@@ -132,3 +132,15 @@ class Orchestrator:
 
         session.history.append({"utterance": utterance, "intent": intent, "result": result})
         return result
+
+    def route_intent(self, text: str, session_id: str = "voice_session") -> str:
+        """Route a voice utterance and return a plain string suitable for TTS.
+
+        Wraps route() and extracts the 'response' key. Falls back to a safe
+        default if the agent returns nothing usable.
+        """
+        result = self.route(session_id=session_id, utterance=text)
+        response = result.get("response", "")
+        if not response or not str(response).strip():
+            return "I'm not sure how to handle that command."
+        return str(response)
