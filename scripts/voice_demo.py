@@ -79,7 +79,6 @@ _CHUNK_SIZE = 1_280          # 80 ms at 16 kHz — optimal for openWakeWord
 _CAPTURE_SECONDS = 5
 _WAKE_THRESHOLD = 0.5
 _WAKE_MODEL_NAME = "alexa"   # bundled model; "Hey ToothTrust" is a v2 task
-_DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"   # ElevenLabs "Rachel" built-in
 _TTS_MODEL = "eleven_turbo_v2_5"
 _VOICE_RESPONSE_MAX_CHARS = 200
 
@@ -113,6 +112,37 @@ def _truncate_for_voice(text: str, max_chars: int = _VOICE_RESPONSE_MAX_CHARS) -
         if idx > max_chars // 2:
             return truncated[: idx + 1].strip()
     return truncated.rstrip() + "…"
+
+
+def _resolve_voice_id(el_client, preferred_id: str) -> str | None:
+    """Return an ElevenLabs voice ID the account can actually access.
+
+    ElevenLabs free tier: only certain pre-made voices work via API. We query
+    available voices at runtime to pick one the user's account can access,
+    rather than assuming a specific voice ID is reachable on all plan tiers.
+
+    Priority:
+      1. TTS_VOICE_ID from .env (explicit user override — used as-is).
+      2. First voice returned by el_client.voices.get_all() (account-specific).
+      3. None — TTS disabled, speak() falls back to printing the response.
+    """
+    if preferred_id:
+        return preferred_id
+    try:
+        voices = el_client.voices.get_all().voices
+        if voices:
+            chosen = voices[0]
+            print(f"[ElevenLabs] Using voice: {chosen.name!r} ({chosen.voice_id})")
+            return chosen.voice_id
+    except Exception as exc:
+        print(
+            f"{ANSI_YELLOW}[ElevenLabs] Could not list voices: {exc}{ANSI_RESET}"
+        )
+    print(
+        f"{ANSI_YELLOW}[ElevenLabs] No voices accessible on this account — "
+        f"TTS disabled.\nUpgrade to Starter plan for library voice access.{ANSI_RESET}"
+    )
+    return None
 
 
 def _beep(frequency: int = 880, duration: float = 0.15) -> None:
@@ -188,9 +218,13 @@ class VoiceDemo:
     def speak(self, text: str) -> None:
         """Convert text to speech via ElevenLabs and play via sounddevice.
 
-        Falls back to printing the response if TTS fails.
+        Falls back to printing the response if voice_id is None (no accessible
+        voice on this account) or if the API call fails (e.g. 402 on free tier).
         """
         voice_text = _truncate_for_voice(text)
+        if not self._voice_id:
+            print(f"{ANSI_YELLOW}[TTS disabled]{ANSI_RESET} {voice_text}")
+            return
         try:
             audio_iter = self._el.text_to_speech.convert(
                 voice_id=self._voice_id,
@@ -205,6 +239,8 @@ class VoiceDemo:
         except Exception as exc:
             print(
                 f"{ANSI_YELLOW}[TTS fallback — ElevenLabs error: {exc}]{ANSI_RESET}\n"
+                "ElevenLabs TTS unavailable — printing response. "
+                "Upgrade to Starter plan for library voice access.\n"
                 f"Response: {voice_text}"
             )
 
@@ -293,7 +329,10 @@ def _build_demo() -> VoiceDemo:
     oww_model = Model(wakeword_models=[_WAKE_MODEL_NAME], inference_framework="onnx")
     orchestrator = Orchestrator()
 
-    voice_id = TTS_VOICE_ID or _DEFAULT_VOICE_ID
+    # ElevenLabs free tier: only certain pre-made voices work via API. We query
+    # available voices at runtime to pick one the user's account can access.
+    # TTS_VOICE_ID in .env always takes precedence as an explicit user override.
+    voice_id = _resolve_voice_id(el_client, TTS_VOICE_ID)
 
     return VoiceDemo(
         dg_client=dg_client,
