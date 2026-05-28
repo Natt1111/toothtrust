@@ -16,8 +16,11 @@ ROOT = Path(__file__).parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from dotenv import load_dotenv
-load_dotenv(ROOT / ".env")
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env")
+except ImportError:
+    pass
 
 import streamlit as st
 
@@ -27,6 +30,16 @@ st.set_page_config(
     page_icon="🦷",
     initial_sidebar_state="expanded",
 )
+
+
+def _get_secret(key: str, default: str = "") -> str:
+    val = os.environ.get(key)
+    if val:
+        return val
+    try:
+        return st.secrets[key]
+    except (KeyError, FileNotFoundError):
+        return default
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -166,7 +179,7 @@ CORPUS_CATEGORIES = [
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def _api_key_present() -> bool:
-    key = os.getenv("ANTHROPIC_API_KEY", "")
+    key = _get_secret("ANTHROPIC_API_KEY")
     return bool(key and key != "dummy")
 
 
