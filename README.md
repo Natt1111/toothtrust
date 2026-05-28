@@ -6,7 +6,7 @@
 
 ---
 
-## Live Demo
+## Run Locally
 
 ```bash
 git clone https://github.com/Natt1111/toothtrust.git && cd toothtrust
@@ -19,7 +19,7 @@ PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python streamlit run app/streamlit_app.py
 Opens at `http://localhost:8501`. Each live run costs ~$0.05. Results cached in session.  
 Works in **offline mode** (no API key) — shows pre-computed results for all 4 cases.
 
-Hosted demo → [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Streamlit Community Cloud)
+Hosted on Streamlit Community Cloud → **[toothtrust-app.streamlit.app](https://toothtrust-app.streamlit.app/)**
 
 ---
 
@@ -35,7 +35,7 @@ The voice layer removes that friction for every role. The agent layer gives each
 
 ## Agent Platform
 
-### v1 — Shipping
+### v1 — Live
 
 | Agent | Target User | Voice Command Example | Core Job |
 |---|---|---|---|
@@ -104,22 +104,6 @@ Four mock cases demonstrate the multi-agent model end-to-end. See `data/mock_cas
 | Susan, RDH | Hygienist | Chart probe depths hands-free | PerioChartAgent |
 | Diana Martinez | Front Desk Coordinator | Know lab case risks before patients arrive | LabCaseAgent |
 | James | Patient | Understand if treatment is evidence-backed | AuditAgent |
-
----
-
-## Setup
-
-```bash
-git clone https://github.com/Natt1111/toothtrust.git && cd toothtrust
-uv venv --python 3.11 && source .venv/bin/activate
-uv pip install -r requirements.txt
-cp .env.example .env        # add ANTHROPIC_API_KEY (required for live mode)
-PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python streamlit run app/streamlit_app.py
-```
-
-Opens at `http://localhost:8501`. Works without an API key in offline mode (pre-computed results).
-
-For Streamlit Community Cloud deployment: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ---
 
