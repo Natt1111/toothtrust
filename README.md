@@ -2,6 +2,8 @@
 
 > Voice-first multi-agent platform for the dental office.
 
+**[🦷 Live Demo → toothtrust-app.streamlit.app](https://toothtrust-app.streamlit.app/)**
+
 ---
 
 ## Live Demo
