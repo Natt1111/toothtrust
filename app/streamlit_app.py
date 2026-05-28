@@ -243,21 +243,21 @@ def page_overview() -> None:
 Every time someone needs to look something up, chart a finding, explain a procedure, or document a visit —
 they have to stop what they're doing. That friction compounds across 20+ patients a day per provider.
 
-ToothTrust removes it through a single voice layer with **six specialized AI agents**, one for every
-role in the dental office — assistant, hygienist, treatment coordinator, and dentist. Each agent does
+ToothTrust removes it through a single voice layer with **seven specialized AI agents**, one for every
+role in the dental office — assistant, hygienist, treatment coordinator, dentist, and front desk. Each agent does
 one job well, hands-free, in real time, grounded in a corpus of 30 peer-reviewed evidence documents.
 
-Built in five days with Claude Code. Three end-to-end demo cases with real API validation.
+Built in five days with Claude Code. Four end-to-end demo cases with real API validation.
 """)
         st.link_button("View on GitHub", GITHUB_URL)
 
     with col_stats:
         st.markdown("&nbsp;")
         r1, r2, r3 = st.columns(3)
-        r1.metric("Tests", "45 / 45")
-        r2.metric("Case checks", "16 / 16")
+        r1.metric("Tests", "115 / 115")
+        r2.metric("Anti-halluc guards", "42")
         r3.metric("Evidence docs", "30")
-        st.caption("Validated across 3 end-to-end demo cases with real Claude API calls.")
+        st.caption("Validated across 4 end-to-end demo cases with real Claude API calls.")
         st.markdown("&nbsp;")
         st.markdown(
             "_Complementary to VideaHealth / Pearl / Overjet — those tools find pathology. "
@@ -297,7 +297,8 @@ def page_demo() -> None:
     if not _api_key_present():
         st.warning(
             "**Offline mode** — no Anthropic API key detected. "
-            "Results shown are pre-computed from `expected_audit.json` / `expected_chart.json`. "
+            "Results shown are pre-computed from `expected_audit.json`, `expected_chart.json`, "
+            "and `expected_scan_output.json`. "
             "Add `ANTHROPIC_API_KEY` to `.env` to run the live pipeline."
         )
 
@@ -802,18 +803,28 @@ def _run_lab_case_case(case_id: str, cfg: dict, files: dict) -> None:
     cached = st.session_state.get(cache_key)
 
     if cached is None:
-        if st.button("▶ Run Lab Case Scan", type="primary", key=f"run_{case_id}"):
-            with st.spinner("LabCaseAgent — cross-referencing appointments with lab case statuses…"):
+        label = "▶ Run Lab Case Scan" if _api_key_present() else "▶ Show Pre-Computed Result"
+        if st.button(label, type="primary", key=f"run_{case_id}"):
+            if _api_key_present():
+                with st.spinner("LabCaseAgent — cross-referencing appointments with lab case statuses…"):
+                    try:
+                        from src.agents.lab_case_agent import LabCaseAgent
+                        agent = LabCaseAgent()
+                        result = agent.scan_tomorrows_appointments()
+                        st.session_state[cache_key] = result
+                        st.rerun()
+                    except Exception as exc:
+                        st.error(f"LabCaseAgent error: {exc}")
+                        with st.expander("Stack trace"):
+                            st.exception(exc)
+            else:
+                import json as _json2
+                scan_path = cfg["dir"] / "expected_scan_output.json"
                 try:
-                    from src.agents.lab_case_agent import LabCaseAgent
-                    agent = LabCaseAgent()
-                    result = agent.scan_tomorrows_appointments()
-                    st.session_state[cache_key] = result
-                    st.rerun()
+                    st.session_state[cache_key] = _json2.loads(scan_path.read_text())
                 except Exception as exc:
-                    st.error(f"LabCaseAgent error: {exc}")
-                    with st.expander("Stack trace"):
-                        st.exception(exc)
+                    st.error(f"Could not load expected_scan_output.json: {exc}")
+                st.rerun()
     else:
         if st.button("↺ Clear & Re-run", key=f"clear_{case_id}"):
             st.session_state.pop(cache_key, None)
@@ -1046,7 +1057,7 @@ def page_architecture() -> None:
 **Backend & Tooling**
 - Python 3.11 · FastAPI · Streamlit
 - Dentrix mock integration (v1)
-- pytest · 45 / 45 tests passing
+- pytest · 115 / 115 tests passing (42 anti-halluc guards)
 - Built with Claude Code in 5 days
 
 **Design Principles**

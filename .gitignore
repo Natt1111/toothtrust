@@ -55,9 +55,6 @@ Icon
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# Vector DB
-chroma_db/
-
 # Pipeline run artifacts
 outputs/
 

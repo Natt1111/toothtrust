@@ -7,19 +7,17 @@
 ## Live Demo
 
 ```bash
-# Quick start (requires Python 3.11 + uv)
 git clone https://github.com/Natt1111/toothtrust.git && cd toothtrust
 uv venv --python 3.11 && source .venv/bin/activate
-uv pip install streamlit chromadb sentence-transformers anthropic pypdf python-dotenv pandas \
-  "numpy<2" "torch==2.1.2" "chromadb==0.5.23" "protobuf>=3.20,<4"
+uv pip install -r requirements.txt
 cp .env.example .env   # add your ANTHROPIC_API_KEY
 PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python streamlit run app/streamlit_app.py
 ```
 
-Opens at `http://localhost:8501`. Each "Run Audit" click costs ~$0.05. Results are cached in session.  
+Opens at `http://localhost:8501`. Each live run costs ~$0.05. Results cached in session.  
 Works in **offline mode** (no API key) — shows pre-computed results for all 4 cases.
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for Streamlit Community Cloud deployment.
+Hosted demo → [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Streamlit Community Cloud)
 
 ---
 
@@ -68,7 +66,20 @@ VideaHealth, Pearl, and Overjet solve the imaging interpretation problem — the
 
 ## Architecture
 
-<!-- TODO: Diagram + narrative covering voice pipeline, RAG stack, agent layer, Dentrix integration surface. -->
+Full architecture narrative, voice pipeline diagram, RAG stack, and Dentrix integration surface: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+**Short version:**
+```
+Wake word (Hey Jarvis / OpenWakeWord)
+  → STT (Deepgram nova-2-medical)
+  → Intent Router (Claude classifier)
+  → Specialized Agent (one of 7)
+  → ChromaDB RAG retrieval (30 evidence docs, 64 chunks)
+  → Claude Sonnet response
+  → TTS (ElevenLabs)
+```
+
+Production data layer: Dentrix via Henry Schein One LinkIt API (v1 uses mock).
 
 ---
 
@@ -96,7 +107,17 @@ Four mock cases demonstrate the multi-agent model end-to-end. See `data/mock_cas
 
 ## Setup
 
-<!-- TODO: Clone, copy .env.example, pip install, run the Streamlit app or FastAPI server. -->
+```bash
+git clone https://github.com/Natt1111/toothtrust.git && cd toothtrust
+uv venv --python 3.11 && source .venv/bin/activate
+uv pip install -r requirements.txt
+cp .env.example .env        # add ANTHROPIC_API_KEY (required for live mode)
+PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python streamlit run app/streamlit_app.py
+```
+
+Opens at `http://localhost:8501`. Works without an API key in offline mode (pre-computed results).
+
+For Streamlit Community Cloud deployment: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ---
 
@@ -133,21 +154,21 @@ System Preferences → Privacy & Security → Microphone, then re-run.
 
 ### Example voice commands
 
-Say **"alexa"** (the v1 placeholder wake word) then:
+Say **"Hey Jarvis"** to activate, then your command:
 
 | Command | Agent |
 |---|---|
-| "Alexa — audit the crown versus composite case" | AuditAgent |
-| "Alexa — scan tomorrow's lab cases" | LabCaseAgent |
-| "Alexa — what does the AAE say about retreatment success rates?" | ResearchAgent |
-| "Alexa — chart MO composite on tooth 14, A2 shade" | ChartAgent |
-| "Alexa — tooth 3 distobuccal 4 buccal 3 mesiobuccal 5 bleeding mesial" | PerioChartAgent |
+| "Hey Jarvis — audit the crown versus composite case" | AuditAgent |
+| "Hey Jarvis — scan tomorrow's lab cases" | LabCaseAgent |
+| "Hey Jarvis — what does the AAE say about retreatment success rates?" | ResearchAgent |
+| "Hey Jarvis — chart MO composite on tooth 14, A2 shade" | ChartAgent |
+| "Hey Jarvis — tooth 3 distobuccal 4 buccal 3 mesiobuccal 5 bleeding mesial" | PerioChartAgent |
 
 Full demo flow with expected spoken responses: [`scripts/voice_demo_examples.md`](scripts/voice_demo_examples.md)
 
 ### Notes
 
-- Wake word is currently **"alexa"** as a placeholder. Training a custom **"Hey ToothTrust"** model
+- Wake word is currently **"Hey Jarvis"** (OpenWakeWord pre-trained model). Training a custom **"Hey ToothTrust"** model
   is documented in [docs/IDEAS.md](docs/IDEAS.md) as a v2 task.
 - Voice demo uses **ONNX runtime** for openWakeWord model inference. `onnxruntime` is included in
   `requirements.txt`. macOS users: if you see `tflite` import errors, run `pip install onnxruntime`
@@ -160,7 +181,7 @@ Full demo flow with expected spoken responses: [`scripts/voice_demo_examples.md`
 
 ## Built with Claude Code
 
-<!-- TODO: Describe how Claude Code was used to scaffold, iterate, and review the codebase. -->
+ToothTrust was built in 5 days using [Claude Code](https://claude.ai/code) — Anthropic's agentic CLI. Claude Code scaffolded the agent architecture, wrote and iterated on all 7 agents, generated the 30-document evidence corpus, built the RAG pipeline, designed the anti-hallucination guard test suite (42 tests), and polished the Streamlit demo UI across 10 staged builds. All 115 tests were written and validated with Claude Code.
 
 ---
 
