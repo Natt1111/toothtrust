@@ -11,7 +11,13 @@
 ```bash
 git clone https://github.com/Natt1111/toothtrust.git && cd toothtrust
 uv venv --python 3.11 && source .venv/bin/activate
+
+# Streamlit demo only (no voice):
 uv pip install -r requirements.txt
+
+# Full local dev including voice pipeline:
+uv pip install -r requirements-local.txt
+
 cp .env.example .env   # add your ANTHROPIC_API_KEY
 PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python streamlit run app/streamlit_app.py
 ```
@@ -114,8 +120,8 @@ A standalone CLI that demonstrates the full voice-first activation loop without 
 ### Install
 
 ```bash
-# All audio deps are already in requirements.txt
-uv pip install -r requirements.txt
+# Voice deps are in requirements-local.txt (not the cloud-safe requirements.txt)
+uv pip install -r requirements-local.txt
 ```
 
 ### Configure
