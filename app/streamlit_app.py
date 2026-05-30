@@ -42,6 +42,92 @@ def _get_secret(key: str, default: str = "") -> str:
     except (KeyError, FileNotFoundError):
         return default
 
+
+def _inject_css() -> None:
+    st.markdown("""
+<style>
+.tt-hero-headline {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #1E293B;
+    line-height: 1.2;
+    margin: 0 0 0.5rem 0;
+}
+.tt-hero-sub {
+    font-size: 1.2rem;
+    color: #64748B;
+    font-weight: 400;
+    margin-bottom: 2rem;
+}
+.tt-stat-number {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #0D9488;
+    line-height: 1;
+    margin-bottom: 0.2rem;
+}
+.tt-stat-label {
+    font-size: 0.72rem;
+    color: #94A3B8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.tt-agent-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1rem 0 1.5rem 0;
+}
+.tt-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.tt-card-icon {
+    font-size: 1.6rem;
+    display: block;
+    margin-bottom: 0.6rem;
+}
+.tt-card-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 0.2rem;
+}
+.tt-card-role {
+    font-size: 0.72rem;
+    color: #0D9488;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+.tt-card-desc {
+    font-size: 0.85rem;
+    color: #64748B;
+    line-height: 1.5;
+}
+.tt-divider {
+    border: none;
+    border-top: 1px solid #E2E8F0;
+    margin: 2rem 0;
+}
+.tt-positioning {
+    font-size: 0.95rem;
+    color: #475569;
+    padding: 1rem 1.5rem;
+    border-left: 3px solid #0D9488;
+    background: #F0FDFA;
+    border-radius: 0 8px 8px 0;
+    margin: 1.5rem 0;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 # ── Constants ──────────────────────────────────────────────────────────────────
 
 GITHUB_URL = "https://github.com/Natt1111/toothtrust"
@@ -245,54 +331,76 @@ def _load_case_files(cfg: dict) -> dict | None:
 # ── Overview page ──────────────────────────────────────────────────────────────
 
 def page_overview() -> None:
-    st.markdown("# 🦷 ToothTrust")
-    st.markdown("### Voice-first multi-agent AI platform for the dental office")
-    st.markdown("---")
+    # ── Hero ──────────────────────────────────────────────────────────────────
+    st.markdown("&nbsp;")
+    st.markdown(
+        '<div class="tt-hero-headline">One voice. Every role. Better care.</div>'
+        '<div class="tt-hero-sub">Voice-first multi-agent AI for the dental office.</div>',
+        unsafe_allow_html=True,
+    )
 
-    col_problem, col_stats = st.columns([3, 2])
+    # ── Stat blocks ───────────────────────────────────────────────────────────
+    s1, s2, s3, s4 = st.columns(4)
+    for col, (num, label) in zip(
+        [s1, s2, s3, s4],
+        [("7", "Specialized Agents"), ("115", "Tests Passing"),
+         ("30", "Evidence Documents"), ("4", "Live Demo Cases")],
+    ):
+        with col:
+            st.markdown(
+                f'<div class="tt-stat-number">{num}</div>'
+                f'<div class="tt-stat-label">{label}</div>',
+                unsafe_allow_html=True,
+            )
 
+    st.markdown('<hr class="tt-divider">', unsafe_allow_html=True)
+
+    # ── Problem + links ───────────────────────────────────────────────────────
+    col_problem, col_links = st.columns([3, 1])
     with col_problem:
-        st.markdown("""
-**Every dental staff member is always busy with their hands.** Gloves, instruments, patient contact.
-Every time someone needs to look something up, chart a finding, explain a procedure, or document a visit —
-they have to stop what they're doing. That friction compounds across 20+ patients a day per provider.
-
-ToothTrust removes it through a single voice layer with **seven specialized AI agents**, one for every
-role in the dental office — assistant, hygienist, treatment coordinator, dentist, and front desk. Each agent does
-one job well, hands-free, in real time, grounded in a corpus of 30 peer-reviewed evidence documents.
-
-Built in five days with Claude Code. Four end-to-end demo cases with real API validation.
-""")
+        st.markdown(
+            "**Every dental staff member is always busy with their hands.** "
+            "Gloves, instruments, patient contact. Every time someone needs to look something up, "
+            "chart a finding, explain a procedure, or document a visit — they have to stop. "
+            "That friction compounds across 20+ patients a day per provider.\n\n"
+            "ToothTrust removes it through a single voice layer with **seven specialized AI agents** — "
+            "one for every role in the dental office. Each agent does one job well, hands-free, "
+            "in real time, grounded in 30 peer-reviewed evidence documents."
+        )
+    with col_links:
+        st.markdown("&nbsp;")
         st.link_button("View on GitHub", GITHUB_URL)
 
-    with col_stats:
-        st.markdown("&nbsp;")
-        r1, r2, r3 = st.columns(3)
-        r1.metric("Tests", "115 / 115")
-        r2.metric("Anti-halluc guards", "42")
-        r3.metric("Evidence docs", "30")
-        st.caption("Validated across 4 end-to-end demo cases with real Claude API calls.")
-        st.markdown("&nbsp;")
-        st.markdown(
-            "_Complementary to VideaHealth / Pearl / Overjet — those tools find pathology. "
-            "ToothTrust handles what happens after: chart it, audit the plan, explain it to the patient, document it._"
-        )
+    # ── Positioning ───────────────────────────────────────────────────────────
+    st.markdown(
+        '<div class="tt-positioning">'
+        "Complementary to diagnostic AI like VideaHealth — ToothTrust handles the workflow layer: "
+        "charting, auditing, documentation, patient scripts, and lab case operations."
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
-    st.markdown("---")
-    st.markdown("### The 7-Agent Platform — v1")
+    st.markdown('<hr class="tt-divider">', unsafe_allow_html=True)
+
+    # ── Agent grid ────────────────────────────────────────────────────────────
+    st.markdown("### The 7-Agent Platform")
     st.caption("All agents deployed, tested, and integrated with the voice orchestration layer.")
+    st.markdown("&nbsp;")
 
-    for row_start in range(0, len(V1_AGENTS), 3):
-        cols = st.columns(3, gap="medium")
-        for col, agent in zip(cols, V1_AGENTS[row_start:row_start + 3]):
-            with col:
-                with st.container(border=True):
-                    st.markdown(f"**{agent['icon']} {agent['name']}**")
-                    st.caption(f"*Target user: {agent['user']}*")
-                    st.markdown(agent["job"])
-                    st.code(agent["example"], language=None)
+    cards_html = '<div class="tt-agent-grid">'
+    for agent in V1_AGENTS:
+        cards_html += (
+            f'<div class="tt-card">'
+            f'<span class="tt-card-icon">{agent["icon"]}</span>'
+            f'<div class="tt-card-name">{agent["name"]}</div>'
+            f'<div class="tt-card-role">{agent["user"]}</div>'
+            f'<div class="tt-card-desc">{agent["job"]}</div>'
+            f'</div>'
+        )
+    cards_html += "</div>"
+    st.markdown(cards_html, unsafe_allow_html=True)
 
-    st.markdown("---")
+    st.markdown('<hr class="tt-divider">', unsafe_allow_html=True)
     st.caption(
         "ToothTrust is for demonstration and informational purposes only. "
         "Not for clinical decision-making or patient care."
@@ -1085,6 +1193,8 @@ def page_architecture() -> None:
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    _inject_css()
+
     # Session state init
     if "selected_case" not in st.session_state:
         st.session_state.selected_case = None
