@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 
 # Must be set before any chromadb/tokenizer imports.
-os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
+os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
 # Ensure project root is importable when running via `streamlit run app/streamlit_app.py`.
