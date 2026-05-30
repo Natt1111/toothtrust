@@ -55,6 +55,9 @@ Icon
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
+# Lock file (Streamlit Cloud uses requirements.txt instead)
+uv.lock
+
 # Pipeline run artifacts
 outputs/
 
