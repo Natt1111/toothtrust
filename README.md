@@ -2,7 +2,7 @@
 
 > Voice-first multi-agent platform for the dental office.
 
-**[🦷 Live Demo → toothtrust-app.streamlit.app](https://toothtrust-app.streamlit.app/)**
+**[🦷 Live Demo → toothtrust.streamlit.app](https://toothtrust.streamlit.app/)**
 
 ---
 
@@ -25,7 +25,7 @@ PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python streamlit run app/streamlit_app.py
 Opens at `http://localhost:8501`. Each live run costs ~$0.05. Results cached in session.  
 Works in **offline mode** (no API key) — shows pre-computed results for all 4 cases.
 
-Hosted on Streamlit Community Cloud → **[toothtrust-app.streamlit.app](https://toothtrust-app.streamlit.app/)**
+Hosted on Streamlit Community Cloud → **[toothtrust.streamlit.app](https://toothtrust.streamlit.app/)**
 
 ---
 
