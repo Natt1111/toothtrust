@@ -188,7 +188,7 @@ Full demo flow with expected spoken responses: [`scripts/voice_demo_examples.md`
 
 ## Built with Claude Code
 
-ToothTrust was built in 5 days using [Claude Code](https://claude.ai/code) — Anthropic's agentic CLI. Claude Code scaffolded the agent architecture, wrote and iterated on all 7 agents, generated the 30-document evidence corpus, built the RAG pipeline, designed the anti-hallucination guard test suite (42 tests), and polished the Streamlit demo UI across 10 staged builds. All 115 tests were written and validated with Claude Code.
+ToothTrust was built using [Claude Code](https://claude.ai/code) — Anthropic's agentic CLI. Claude Code scaffolded the agent architecture, wrote and iterated on all 7 agents, generated the 30-document evidence corpus, built the RAG pipeline, designed the anti-hallucination guard test suite (42 tests), and polished the Streamlit demo UI across 10 staged builds. All 115 tests were written and validated with Claude Code.
 
 ---
 
