@@ -1226,14 +1226,21 @@ def page_voice() -> None:
             st.markdown(f"**{agent['example']}** — routes to *{agent['name']}*")
 
     st.markdown("&nbsp;")
-    audio = st.audio_input("Press to record your command")
+    voice_mode_on = st.toggle("🎙️ Voice Mode", key="voice_mode_on")
 
-    if audio is not None:
-        audio_bytes = audio.getvalue()
-        cur_hash = hash(audio_bytes)
-        if cur_hash != st.session_state.get("voice_last_audio_hash"):
-            st.session_state["voice_last_audio_hash"] = cur_hash
-            _process_voice_command(audio_bytes)
+    if not voice_mode_on:
+        st.caption("Voice Mode is off. Toggle it on to start talking.")
+    else:
+        st.caption("Voice Mode is on — tap to record, then tap again after each reply for the next command.")
+        gen = st.session_state.get("voice_input_generation", 0)
+        audio = st.audio_input("Press to record your command", key=f"voice_audio_input_{gen}")
+
+        if audio is not None:
+            audio_bytes = audio.getvalue()
+            cur_hash = hash(audio_bytes)
+            if cur_hash != st.session_state.get("voice_last_audio_hash"):
+                st.session_state["voice_last_audio_hash"] = cur_hash
+                _process_voice_command(audio_bytes)
 
     st.markdown("---")
     st.markdown("### Session Transcript")
@@ -1285,6 +1292,10 @@ def _process_voice_command(audio_bytes: bytes) -> None:
             "audio": tts_audio,
             "details": details,
         })
+        # Bump the widget key so the next render shows a fresh, empty recorder
+        # instead of the just-processed clip — lets the user tap-record again
+        # immediately without first dismissing the previous recording.
+        st.session_state["voice_input_generation"] = st.session_state.get("voice_input_generation", 0) + 1
         st.rerun()
     except Exception as exc:
         print(f"[Voice command error] {exc!r}")
