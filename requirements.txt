@@ -1,6 +1,6 @@
 fastapi>=0.100
 uvicorn>=0.24
-streamlit>=1.30,<2
+streamlit>=1.36,<2
 chromadb>=0.4,<1
 anthropic>=0.40
 sentence-transformers>=2.2
@@ -10,3 +10,5 @@ python-dotenv>=1.0
 pydantic>=2.0
 numpy>=1.24,<2
 protobuf>=3.20,<3.21
+deepgram-sdk
+elevenlabs

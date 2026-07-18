@@ -1,10 +1,11 @@
-"""ToothTrust Streamlit demo — polished multi-agent dental AI platform showcase."""
+"""ToothTrust — voice-first multi-agent dental AI platform."""
 
 from __future__ import annotations
 
 import json
 import os
 import sys
+import uuid
 from pathlib import Path
 
 # Must be set before any chromadb/tokenizer imports.
@@ -270,6 +271,49 @@ def _api_key_present() -> bool:
     return bool(key and key != "dummy")
 
 
+_MAX_LIVE_CALLS_PER_SESSION = 15
+
+
+def _require_access_gate() -> bool:
+    """Gate live (billed) API usage behind APP_ACCESS_CODE, if one is configured.
+
+    No-op (always True) when APP_ACCESS_CODE is unset, so local dev is unaffected.
+    Sample Data Mode never calls this — it stays open regardless of the gate.
+    """
+    code = _get_secret("APP_ACCESS_CODE")
+    if not code:
+        return True
+    if st.session_state.get("access_granted"):
+        return True
+    st.info("🔒 This runs a live, billed AI pipeline. Enter the access code to continue.")
+    entered = st.text_input("Access code", type="password", key="access_code_input")
+    if st.button("Unlock", key="access_code_submit"):
+        if entered == code:
+            st.session_state["access_granted"] = True
+            st.rerun()
+        else:
+            st.error("Incorrect access code.")
+    return False
+
+
+def _live_ready() -> bool:
+    """True if the live pipeline may run right now (key present + access gate cleared)."""
+    return _api_key_present() and _require_access_gate()
+
+
+def _consume_live_call_budget() -> bool:
+    """Per-session cap on live API calls, to protect against runaway cost. Call once per actual call."""
+    count = st.session_state.get("live_call_count", 0)
+    if count >= _MAX_LIVE_CALLS_PER_SESSION:
+        st.error(
+            f"Session limit reached ({_MAX_LIVE_CALLS_PER_SESSION} live calls). "
+            "Refresh the page to start a new session."
+        )
+        return False
+    st.session_state["live_call_count"] = count + 1
+    return True
+
+
 def _verdict_badge(verdict: str) -> str:
     styles: dict[str, tuple[str, str]] = {
         "unsupported":           ("#DC2626", "⚠ Not Supported"),
@@ -344,7 +388,7 @@ def page_overview() -> None:
     for col, (num, label) in zip(
         [s1, s2, s3, s4],
         [("7", "Specialized Agents"), ("115", "Tests Passing"),
-         ("30", "Evidence Documents"), ("4", "Live Demo Cases")],
+         ("30", "Evidence Documents"), ("4", "Case Studies")],
     ):
         with col:
             st.markdown(
@@ -374,11 +418,25 @@ def page_overview() -> None:
     # ── Positioning ───────────────────────────────────────────────────────────
     st.markdown(
         '<div class="tt-positioning">'
-        "Complementary to diagnostic AI like VideaHealth — ToothTrust handles the workflow layer: "
-        "charting, auditing, documentation, patient scripts, and lab case operations."
+        "Complementary to diagnostic AI like Pearl, Overjet, and VideaHealth — "
+        "ToothTrust handles the workflow layer: charting, auditing, documentation, "
+        "patient scripts, and lab case operations."
         "</div>",
         unsafe_allow_html=True,
     )
+
+    st.markdown("&nbsp;")
+    st.markdown("#### Where ToothTrust fits vs. imaging AI")
+    st.markdown(
+        "| | **ToothTrust** | Pearl / Overjet / VideaHealth |\n"
+        "|---|---|---|\n"
+        "| **Problem solved** | Clinical workflow — charting, auditing, documentation, patient communication | Diagnostic imaging — pathology detection in X-rays |\n"
+        "| **Primary input** | Voice, hands-free, chairside | Radiograph images |\n"
+        "| **Primary output** | Structured chart entries, treatment audits, patient scripts, SOAP notes | Annotated findings, detected pathology |\n"
+        "| **Workflow stage** | *After* the finding — what staff do with it | *At* the finding — surfacing what's in the image |\n"
+        "| **Interaction model** | Real-time, hands-free voice | Screen review, asynchronous |\n"
+    )
+    st.caption("Not a replacement for imaging AI — the two integrate: a Pearl/Overjet/VideaHealth finding becomes a ToothTrust chart entry, audit, and patient script.")
 
     st.markdown('<hr class="tt-divider">', unsafe_allow_html=True)
 
@@ -402,15 +460,15 @@ def page_overview() -> None:
 
     st.markdown('<hr class="tt-divider">', unsafe_allow_html=True)
     st.caption(
-        "ToothTrust is for demonstration and informational purposes only. "
-        "Not for clinical decision-making or patient care."
+        "Clinical decision support — final treatment decisions "
+        "remain with the licensed provider."
     )
 
 
 # ── Demo runner page ───────────────────────────────────────────────────────────
 
 def page_demo() -> None:
-    st.markdown("## 🦷 Interactive Demo Cases")
+    st.markdown("## 🦷 Case Studies")
     st.markdown(
         "Pre-loaded with real clinical data. "
         "Click a case card, then hit **Run** to call the live AI pipeline."
@@ -418,8 +476,8 @@ def page_demo() -> None:
 
     if not _api_key_present():
         st.warning(
-            "**Offline mode** — no Anthropic API key detected. "
-            "Results shown are pre-computed from `expected_audit.json`, `expected_chart.json`, "
+            "**Sample Data Mode** — no Anthropic API key detected. "
+            "Results shown are pre-validated outputs from `expected_audit.json`, `expected_chart.json`, "
             "and `expected_scan_output.json`. "
             "Add `ANTHROPIC_API_KEY` to `.env` to run the live pipeline."
         )
@@ -524,16 +582,19 @@ def _run_audit_case(case_id: str, cfg: dict, files: dict) -> None:
     cached = st.session_state.get(cache_key)
 
     if cached is None:
-        label = "▶ Run Audit" if _api_key_present() else "▶ Show Pre-Computed Result"
-        if st.button(label, type="primary", key=f"run_{case_id}"):
-            if _api_key_present():
-                _execute_audit(case_id, cfg, patient, files, cache_key)
-            else:
-                st.session_state[cache_key] = {
-                    "source": "offline",
-                    "data": files.get("expected_audit", {}),
-                }
-                st.rerun()
+        if _api_key_present() and not _require_access_gate():
+            pass  # gate prompt rendered above; wait for the user to unlock
+        else:
+            label = "▶ Run Audit" if _api_key_present() else "▶ Show Pre-Computed Result"
+            if st.button(label, type="primary", key=f"run_{case_id}"):
+                if _api_key_present():
+                    _execute_audit(case_id, cfg, patient, files, cache_key)
+                else:
+                    st.session_state[cache_key] = {
+                        "source": "offline",
+                        "data": files.get("expected_audit", {}),
+                    }
+                    st.rerun()
     else:
         if st.button("↺ Clear & Re-run", key=f"clear_{case_id}"):
             st.session_state.pop(cache_key, None)
@@ -543,6 +604,8 @@ def _run_audit_case(case_id: str, cfg: dict, files: dict) -> None:
 
 
 def _execute_audit(case_id: str, cfg: dict, patient: dict, files: dict, cache_key: str) -> None:
+    if not _consume_live_call_budget():
+        return
     with st.spinner("AuditAgent — retrieving evidence + calling Claude…"):
         try:
             from src.agents.audit_agent import AuditAgent
@@ -570,9 +633,8 @@ def _execute_audit(case_id: str, cfg: dict, patient: dict, files: dict, cache_ke
             st.session_state[cache_key] = {"source": "live", "data": res}
             st.rerun()
         except Exception as exc:
-            st.error(f"AuditAgent error: {exc}")
-            with st.expander("Stack trace"):
-                st.exception(exc)
+            print(f"[AuditAgent error] {exc!r}")
+            st.error("AuditAgent ran into a problem processing that request. Please try again.")
 
 
 def _render_audit_result(case_id: str, cfg: dict, cached: dict) -> None:
@@ -664,7 +726,7 @@ def _render_audit_result(case_id: str, cfg: dict, cached: dict) -> None:
 
 
 def _render_offline_audit(cfg: dict, expected: dict) -> None:
-    st.info("Showing pre-computed expected output (offline mode).")
+    st.info("Showing pre-validated result (Sample Data Mode).")
     verdict_raw = expected.get("verdict", "")
     verdict_map = {
         "LIKELY OVERTREATMENT": "unsupported",
@@ -698,8 +760,12 @@ def _tc_section(case_id: str, audit_data: dict) -> None:
     tc_cached = st.session_state.get(tc_key)
 
     if tc_cached is None:
-        if st.button("▶ Generate Patient Script", key=f"run_tc_{case_id}"):
+        if _api_key_present() and not _require_access_gate():
+            pass  # gate prompt rendered above; wait for the user to unlock
+        elif st.button("▶ Generate Patient Script", key=f"run_tc_{case_id}"):
             if _api_key_present():
+                if not _consume_live_call_budget():
+                    return
                 with st.spinner("TreatmentCoordinatorAgent — drafting patient script…"):
                     try:
                         from src.agents.treatment_coordinator_agent import TreatmentCoordinatorAgent
@@ -709,9 +775,8 @@ def _tc_section(case_id: str, audit_data: dict) -> None:
                         st.session_state[tc_key] = res
                         st.rerun()
                     except Exception as exc:
-                        st.error(f"TreatmentCoordinatorAgent error: {exc}")
-                        with st.expander("Stack trace"):
-                            st.exception(exc)
+                        print(f"[TreatmentCoordinatorAgent error] {exc!r}")
+                        st.error("TreatmentCoordinatorAgent ran into a problem processing that request. Please try again.")
             else:
                 st.info("Live API required to generate the TC script. Run in online mode.")
     else:
@@ -793,29 +858,33 @@ def _run_perio_case(case_id: str, cfg: dict, files: dict) -> None:
     cached = st.session_state.get(cache_key)
 
     if cached is None:
-        label = "▶ Run PerioChart" if _api_key_present() else "▶ Show Pre-Computed Result"
-        if st.button(label, type="primary", key=f"run_{case_id}"):
-            if _api_key_present():
-                with st.spinner("PerioChartAgent — parsing transcript + computing AAP stage…"):
-                    try:
-                        from src.agents.perio_chart_agent import PerioChartAgent
-                        agent = PerioChartAgent()
-                        res = agent.run(
-                            transcript=transcript,
-                            corpus_citations=case.get("corpus_sources", []),
-                        )
-                        st.session_state[cache_key] = {"source": "live", "data": res}
-                        st.rerun()
-                    except Exception as exc:
-                        st.error(f"PerioChartAgent error: {exc}")
-                        with st.expander("Stack trace"):
-                            st.exception(exc)
-            else:
-                st.session_state[cache_key] = {
-                    "source": "offline",
-                    "data": files.get("expected_chart", {}),
-                }
-                st.rerun()
+        if _api_key_present() and not _require_access_gate():
+            pass  # gate prompt rendered above; wait for the user to unlock
+        else:
+            label = "▶ Run PerioChart" if _api_key_present() else "▶ Show Pre-Computed Result"
+            if st.button(label, type="primary", key=f"run_{case_id}"):
+                if _api_key_present():
+                    if not _consume_live_call_budget():
+                        return
+                    with st.spinner("PerioChartAgent — parsing transcript + computing AAP stage…"):
+                        try:
+                            from src.agents.perio_chart_agent import PerioChartAgent
+                            agent = PerioChartAgent()
+                            res = agent.run(
+                                transcript=transcript,
+                                corpus_citations=case.get("corpus_sources", []),
+                            )
+                            st.session_state[cache_key] = {"source": "live", "data": res}
+                            st.rerun()
+                        except Exception as exc:
+                            print(f"[PerioChartAgent error] {exc!r}")
+                            st.error("PerioChartAgent ran into a problem processing that request. Please try again.")
+                else:
+                    st.session_state[cache_key] = {
+                        "source": "offline",
+                        "data": files.get("expected_chart", {}),
+                    }
+                    st.rerun()
     else:
         if st.button("↺ Clear & Re-run", key=f"clear_{case_id}"):
             st.session_state.pop(cache_key, None)
@@ -830,7 +899,7 @@ def _render_perio_result(cached: dict) -> None:
     data = cached["data"]
 
     if source == "offline":
-        st.info("Showing pre-computed expected output (offline mode).")
+        st.info("Showing pre-validated result (Sample Data Mode).")
         summary = data.get("summary", {})
         teeth = data.get("teeth", [])
     else:
@@ -925,28 +994,32 @@ def _run_lab_case_case(case_id: str, cfg: dict, files: dict) -> None:
     cached = st.session_state.get(cache_key)
 
     if cached is None:
-        label = "▶ Run Lab Case Scan" if _api_key_present() else "▶ Show Pre-Computed Result"
-        if st.button(label, type="primary", key=f"run_{case_id}"):
-            if _api_key_present():
-                with st.spinner("LabCaseAgent — cross-referencing appointments with lab case statuses…"):
+        if _api_key_present() and not _require_access_gate():
+            pass  # gate prompt rendered above; wait for the user to unlock
+        else:
+            label = "▶ Run Lab Case Scan" if _api_key_present() else "▶ Show Pre-Computed Result"
+            if st.button(label, type="primary", key=f"run_{case_id}"):
+                if _api_key_present():
+                    if not _consume_live_call_budget():
+                        return
+                    with st.spinner("LabCaseAgent — cross-referencing appointments with lab case statuses…"):
+                        try:
+                            from src.agents.lab_case_agent import LabCaseAgent
+                            agent = LabCaseAgent()
+                            result = agent.scan_tomorrows_appointments()
+                            st.session_state[cache_key] = result
+                            st.rerun()
+                        except Exception as exc:
+                            print(f"[LabCaseAgent error] {exc!r}")
+                            st.error("LabCaseAgent ran into a problem processing that request. Please try again.")
+                else:
+                    import json as _json2
+                    scan_path = cfg["dir"] / "expected_scan_output.json"
                     try:
-                        from src.agents.lab_case_agent import LabCaseAgent
-                        agent = LabCaseAgent()
-                        result = agent.scan_tomorrows_appointments()
-                        st.session_state[cache_key] = result
-                        st.rerun()
+                        st.session_state[cache_key] = _json2.loads(scan_path.read_text())
                     except Exception as exc:
-                        st.error(f"LabCaseAgent error: {exc}")
-                        with st.expander("Stack trace"):
-                            st.exception(exc)
-            else:
-                import json as _json2
-                scan_path = cfg["dir"] / "expected_scan_output.json"
-                try:
-                    st.session_state[cache_key] = _json2.loads(scan_path.read_text())
-                except Exception as exc:
-                    st.error(f"Could not load expected_scan_output.json: {exc}")
-                st.rerun()
+                        st.error(f"Could not load expected_scan_output.json: {exc}")
+                    st.rerun()
     else:
         if st.button("↺ Clear & Re-run", key=f"clear_{case_id}"):
             st.session_state.pop(cache_key, None)
@@ -995,6 +1068,14 @@ def _render_lab_case_result(case_id: str, scan: dict) -> None:
         "no_case_required":("#6B7280", "— No Case"),
     }
 
+    # Compute the reschedule gate once (not per-row) — _live_ready() renders a
+    # password widget with a fixed key, which would collide if called per row.
+    has_critical = any(
+        a.get("risk_level") == "critical_missing" and a.get("lab_case_id")
+        for a in scan.get("appointments", [])
+    )
+    reschedule_live_ok = _live_ready() if has_critical else False
+
     for apt in scan.get("appointments", []):
         risk = apt.get("risk_level", "")
         color, label = _RISK_COLORS.get(risk, ("#6B7280", risk))
@@ -1035,16 +1116,18 @@ def _render_lab_case_result(case_id: str, scan: dict) -> None:
                             st.error(f"Attribution error: {exc}")
 
                 with rcol:
-                    if _api_key_present():
+                    if reschedule_live_ok:
                         if st.button(f"✉️ Draft Reschedule", key=f"resched_btn_{case_id}_{lc_id}"):
-                            with st.spinner("Drafting reschedule message…"):
-                                try:
-                                    from src.agents.lab_case_agent import LabCaseAgent
-                                    drafts = LabCaseAgent().recommend_reschedules()
-                                    st.session_state[resched_key] = drafts
-                                    st.rerun()
-                                except Exception as exc:
-                                    st.error(f"Reschedule error: {exc}")
+                            if _consume_live_call_budget():
+                                with st.spinner("Drafting reschedule message…"):
+                                    try:
+                                        from src.agents.lab_case_agent import LabCaseAgent
+                                        drafts = LabCaseAgent().recommend_reschedules()
+                                        st.session_state[resched_key] = drafts
+                                        st.rerun()
+                                    except Exception as exc:
+                                        print(f"[LabCaseAgent reschedule error] {exc!r}")
+                                        st.error("Couldn't draft the reschedule message. Please try again.")
 
                 if attr_key in st.session_state:
                     attr = st.session_state[attr_key]
@@ -1087,6 +1170,125 @@ def _render_lab_case_result(case_id: str, scan: dict) -> None:
                                     key=f"msg_{case_id}_{lc_id}",
                                 )
                                 st.caption(f"Suggested new date: {d['suggested_new_date']}")
+
+
+# ── Voice Command page ──────────────────────────────────────────────────────────
+
+def _voice_keys_present() -> bool:
+    return bool(_get_secret("DEEPGRAM_API_KEY")) and bool(_get_secret("ELEVENLABS_API_KEY"))
+
+
+@st.cache_resource(show_spinner=False)
+def _get_stt():
+    from src.voice.stt import SpeechToText
+    return SpeechToText()
+
+
+@st.cache_resource(show_spinner=False)
+def _get_tts():
+    from src.voice.tts import TextToSpeech
+    return TextToSpeech()
+
+
+@st.cache_resource(show_spinner=False)
+def _get_orchestrator():
+    from src.orchestrator import Orchestrator
+    return Orchestrator()
+
+
+def page_voice() -> None:
+    st.markdown("## 🎙️ Voice Command")
+    st.markdown(
+        "Speak a command the way staff would chairside — hands-free, no menus. "
+        "Routed live through the same 7-agent pipeline as Case Studies."
+    )
+
+    missing = [
+        name for name, present in [
+            ("ANTHROPIC_API_KEY", _api_key_present()),
+            ("DEEPGRAM_API_KEY", bool(_get_secret("DEEPGRAM_API_KEY"))),
+            ("ELEVENLABS_API_KEY", bool(_get_secret("ELEVENLABS_API_KEY"))),
+        ] if not present
+    ]
+    if missing:
+        st.warning(
+            f"Voice Command needs live API keys ({', '.join(missing)} not configured). "
+            "Voice is always a live pipeline — there's no sample-data fallback for it. "
+            "Try Case Studies instead, or add these keys to enable voice."
+        )
+        return
+
+    if not _require_access_gate():
+        return
+
+    with st.expander("💡 Example commands", expanded=not st.session_state.get("voice_history")):
+        for agent in V1_AGENTS:
+            st.markdown(f"**{agent['example']}** — routes to *{agent['name']}*")
+
+    st.markdown("&nbsp;")
+    audio = st.audio_input("Press to record your command")
+
+    if audio is not None:
+        audio_bytes = audio.getvalue()
+        cur_hash = hash(audio_bytes)
+        if cur_hash != st.session_state.get("voice_last_audio_hash"):
+            st.session_state["voice_last_audio_hash"] = cur_hash
+            _process_voice_command(audio_bytes)
+
+    st.markdown("---")
+    st.markdown("### Session Transcript")
+    history = st.session_state.get("voice_history", [])
+    if not history:
+        st.caption("No commands yet — record one above to get started.")
+    else:
+        for turn in reversed(history):
+            with st.container(border=True):
+                st.markdown(f"**🗣️ You said:** {turn['transcript']}")
+                st.markdown(f"**🤖 {turn['intent']}:** {turn['response']}")
+                if turn.get("audio"):
+                    st.audio(turn["audio"], format="audio/mp3")
+                if turn.get("details"):
+                    with st.expander("Details"):
+                        st.json(turn["details"])
+
+
+def _process_voice_command(audio_bytes: bytes) -> None:
+    if not _consume_live_call_budget():
+        return
+    try:
+        with st.spinner("Transcribing…"):
+            transcript = _get_stt().transcribe_bytes(audio_bytes, mimetype="audio/wav")
+
+        if not transcript.strip():
+            st.warning("Didn't catch that — try recording again, closer to the mic.")
+            return
+
+        with st.spinner("Routing to agent…"):
+            session_id = st.session_state.setdefault("voice_session_id", str(uuid.uuid4()))
+            result = _get_orchestrator().route(session_id=session_id, utterance=transcript)
+
+        response_text = str(result.get("response") or "I'm not sure how to handle that command.")
+        intent_label = str(result.get("intent", "unknown")).replace("_", " ").title()
+
+        tts_audio = None
+        try:
+            with st.spinner("Synthesizing voice reply…"):
+                tts_audio = _get_tts().synthesize(response_text[:200])
+        except Exception as exc:
+            print(f"[TTS error] {exc!r}")
+
+        details = {k: v for k, v in result.items() if k not in ("response", "intent")}
+        st.session_state.setdefault("voice_history", []).append({
+            "transcript": transcript,
+            "intent": intent_label,
+            "response": response_text,
+            "audio": tts_audio,
+            "details": details,
+        })
+        st.rerun()
+    except Exception as exc:
+        print(f"[Voice command error] {exc!r}")
+        st.error("Something went wrong processing that voice command. Please try again.")
 
 
 # ── Architecture page ──────────────────────────────────────────────────────────
@@ -1206,29 +1408,30 @@ def main() -> None:
 
         page = st.radio(
             "Navigate",
-            ["🏠 Overview", "🦷 Run a Demo Case", "🏗️ Architecture"],
+            ["🏠 Overview", "🎙️ Voice Command", "🦷 Case Studies", "🏗️ Platform"],
             label_visibility="collapsed",
         )
 
         st.markdown("---")
         if _api_key_present():
-            st.success("🟢 Live API connected")
+            st.success("🟢 System Online")
         else:
-            st.warning("🟡 Offline mode")
-        st.caption("Each run costs ~$0.05. Results cached in session.")
+            st.warning("🟡 Sample Data Mode")
         st.markdown("---")
         st.link_button("GitHub →", GITHUB_URL)
         st.markdown("---")
         st.caption(
-            "For demonstration purposes only. "
-            "Not for clinical decision-making."
+            "Clinical decision support — final treatment decisions "
+            "remain with the licensed provider."
         )
 
     if page == "🏠 Overview":
         page_overview()
-    elif page == "🦷 Run a Demo Case":
+    elif page == "🎙️ Voice Command":
+        page_voice()
+    elif page == "🦷 Case Studies":
         page_demo()
-    elif page == "🏗️ Architecture":
+    elif page == "🏗️ Platform":
         page_architecture()
 
 
