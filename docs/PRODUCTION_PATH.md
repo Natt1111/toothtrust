@@ -12,7 +12,7 @@ This document tracks the gaps between the current MVP and a production-ready, HI
 - [ ] End-to-end audit demo with a real treatment plan PDF
 
 ## Milestone 2 — Pilot (1–2 dental offices)
-- [ ] HIPAA Business Associate Agreement with all vendors (Anthropic, Deepgram, ElevenLabs) — the real bottleneck; a legal/vendor process, not engineering. Start in parallel with everything else in this milestone.
+- [ ] HIPAA Business Associate Agreement with all vendors (Anthropic, Deepgram, ElevenLabs) — the real bottleneck; a legal/vendor process, not engineering. Start in parallel with everything else in this milestone. Tracked with confirmed per-vendor requirements and ready-to-send outreach drafts in [docs/COMPLIANCE_BAA_TRACKER.md](COMPLIANCE_BAA_TRACKER.md) — outreach not yet sent.
 - [ ] PHI handling audit — ensure no patient data written to logs or vector DB
   - [x] Chart/session storage confirmed in-memory-only, never written to disk (`Orchestrator._sessions`, `DentrixMock`)
   - [x] Vector DB (ChromaDB) confirmed to hold only general clinical evidence, never patient-specific data — true by construction, `EvidenceRetriever` has no patient-data write path
@@ -36,6 +36,6 @@ This document tracks the gaps between the current MVP and a production-ready, HI
 |---|---|---|---|
 | LLM hallucination in clinical context | Medium | High | Retrieval confidence score, mandatory citation display, "I don't know" fallback |
 | HIPAA violation via log leakage | Low | Critical | Structured logging with PII scrubber, no patient name/DOB in any log line |
-| Deepgram/ElevenLabs BAA unavailable | Low | High | Validated BAAs exist for enterprise tiers; budget accordingly |
+| Deepgram/ElevenLabs BAA unavailable | Low | High | Confirmed: Deepgram BAA available on request on qualifying plans. ElevenLabs BAA is **Enterprise-tier only** plus mandatory Zero Retention Mode — the recent ElevenLabs plan upgrade is very likely not Enterprise, so this may still be blocked; verify before assuming it's covered. See [docs/COMPLIANCE_BAA_TRACKER.md](COMPLIANCE_BAA_TRACKER.md). |
 | Dentrix API access denied | Medium | High | HL7 FHIR export as fallback; manual paste-in flow for MVP |
 | Evidence corpus copyright | Medium | Medium | License ADA content; rely on fair-use excerpts for research; consult IP counsel |
