@@ -65,6 +65,14 @@ class Session:
 
 
 class Orchestrator:
+    """
+    Note on data handling: `_sessions` is a plain in-process dict — it is
+    never serialized to disk, a database, or a log file, and is lost on
+    restart. Session/chart data (which can carry patient-derived content)
+    must stay in-memory only; see docs/PRODUCTION_PATH.md (Milestone 2,
+    PHI handling audit) before adding any persistence here.
+    """
+
     def __init__(self) -> None:
         self._sessions: dict[str, Session] = {}
 
